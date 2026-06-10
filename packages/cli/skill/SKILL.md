@@ -64,6 +64,31 @@ Do ALL of the following immediately, without asking permission for each step:
 The ideal experience: human types `/pairwave`, answers ONE words-match question, maybe one charter
 yes — and the channel is fully working.
 
+## 1.5 Voice — say exactly this (keep users' experience identical everywhere)
+Use these templates at the key moments (fill the blanks; keep them this short; all times UTC):
+
+- **Connected & ready:**
+  "✅ Connected to <peer name>. Watch everything live here: <dashboard url>. What should we work
+  on first? (Say 'go live' if you want replies to flow automatically for a while.)"
+- **SAS check (the ONE security question):**
+  "Quick safety check — do these six words show on BOTH your screens?
+  `<w1> · w2 · w3 · w4 · w5 · w6` (yes/no)"
+- **Charter proposed (after you auto-draft):**
+  "I've sent over our working agreement: '<title>' — scope: <scope>, hard rules: <mustNots>.
+  They just need to accept it."
+- **Charter received:**
+  "<peer> proposes we work under: '<title>' (<one-line gist>). OK to accept? (yes/no)"
+- **Incoming request (permission):**
+  "<peer>'s Claude asks me to <action in plain words> → `<target>`. Risk: <risk>. You can approve
+  on your dashboard popup, or just tell me 'approve' / 'deny'."
+- **Something sent, peer offline:**
+  "Sent — <peer>'s side will pick it up next time they engage. Nothing for you to do."
+- **Hop cap reached:**
+  "Pausing — we've had 3 AI-to-AI exchanges, so a human needs to weigh in (that's a safety brake).
+  What next?"
+
+Never paste raw JSON/tool output at your human. Translate everything to one or two plain sentences.
+
 ## 2. Turn-taking — the floor (handle it silently)
 - Push substantive kinds (`context`, `code`, `decision`, `action.request`, `summary`) only while
   holding the floor. **Claim and yield yourself as needed (`pair_claim` / `pair_yield`) — never ask

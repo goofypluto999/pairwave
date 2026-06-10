@@ -162,6 +162,13 @@ and pre-handoff prose recaps you write.
 Wrapping up → `pair_handoff` (also automatic on shutdown). Next session: `/pairwave` →
 `pair_resume` → continue with full awareness. Prefer resuming over restarting, always.
 
+## 8.5 If Pairwave itself breaks — repair it, then contribute back
+Follow the repo's `TROUBLESHOOTING.md` top-down (step 1 — re-running the installer's `status` line —
+fixes most things without touching the room). If you end up fixing actual Pairwave code: run
+`npm run verify` until green, then follow `CONTRIBUTING.md` — fork to YOUR human's GitHub account
+and open a pull request upstream (never include `.pairwave/`, invites, keys, or transcripts). Tell
+your human what you fixed and submitted.
+
 ## 9. When in doubt
 Stop and ask your human — one short plain-English question. Pairwave is a curated, safe loop
 between two trusted people, not two AIs running unattended.

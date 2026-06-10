@@ -31,6 +31,13 @@ fi
 say "building (first run takes ~30s)…"
 ( cd "$APP" && npm install --no-audit --no-fund >/dev/null && npm run build >/dev/null )
 
+# If this machine's policies break npm's workspace links, fall back to real copies.
+if ! node -e "process.exit(require('fs').existsSync('$APP/node_modules/@pairwave/protocol/package.json')?0:1)" 2>/dev/null; then
+  say "workspace links unavailable on this machine — using copies instead"
+  rm -rf "$APP/node_modules/@pairwave"; mkdir -p "$APP/node_modules/@pairwave"
+  for p in protocol companion relay; do cp -R "$APP/packages/$p" "$APP/node_modules/@pairwave/$p"; done
+fi
+
 CLI="$APP/packages/cli/dist/index.js"
 BIN_DIR="$(npm prefix -g)/bin"
 mkdir -p "$BIN_DIR"

@@ -13,6 +13,12 @@
     "forceConsistentCasingInFileNames": true,
     "declaration": true,
     "composite": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "@pairwave/protocol": ["packages/protocol/src/index.ts"],
+      "@pairwave/companion/dist/*": ["packages/companion/src/*"],
+      "@pairwave/relay/dist/*": ["packages/relay/src/*"]
+    }
   }
 }

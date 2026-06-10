@@ -41,6 +41,18 @@ try {
   if ($LASTEXITCODE -ne 0) { Write-Host $log; Fail "npm install failed" }
   $log = npm run build 2>&1
   if ($LASTEXITCODE -ne 0) { Write-Host $log; Fail "build failed" }
+
+  # Some machines (AV/folder-protection policies) break npm's workspace junctions. Probe one; if it
+  # doesn't resolve, replace the links with real copies — node then resolves them like any package.
+  node -e "process.exit(require('fs').existsSync('node_modules/@pairwave/protocol/package.json')?0:1)" 2>$null
+  if ($LASTEXITCODE -ne 0) {
+    Step "workspace links unavailable on this machine — using copies instead"
+    Remove-Item "node_modules\@pairwave" -Recurse -Force -ErrorAction SilentlyContinue
+    New-Item -ItemType Directory -Force -Path "node_modules\@pairwave" | Out-Null
+    foreach ($p in "protocol", "companion", "relay") {
+      Copy-Item "packages\$p" "node_modules\@pairwave\$p" -Recurse -Force
+    }
+  }
 } finally { Pop-Location }
 
 # 4. global `pairwave` command (shim in npm's global bin — already on your PATH)

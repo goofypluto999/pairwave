@@ -3,168 +3,209 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Pairwave — live channel</title>
+<title>Pairwave</title>
 <style>
   :root {
-    --bg: #0c0e12; --panel: #12151c; --panel2: #161a23; --line: #232936;
-    --text: #dde3ee; --dim: #8b94a7; --faint: #5b6374; --accent: #5eb0ff;
-    --ok: #4ade80; --warn: #fbbf24; --bad: #f87171; --chip: #1d2330;
+    --bg: #0b0d11; --panel: #11141a; --panel2: #171b23; --card: #151922;
+    --line: #222836; --line2: #2c3344;
+    --text: #e6eaf2; --dim: #98a2b5; --faint: #5d6678; --accent: #6cb5ff; --accent2: #8f9dff;
+    --ok: #51d88a; --warn: #f2b84b; --bad: #f0716e; --chip: #1b2029;
     --mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+    --r: 10px;
   }
   * { box-sizing: border-box; margin: 0; }
   .hidden { display: none !important; }
   body {
     background: var(--bg); color: var(--text);
-    font: 14px/1.45 system-ui, "Segoe UI", sans-serif;
+    font: 14px/1.55 system-ui, "Segoe UI", sans-serif;
     height: 100vh; display: flex; flex-direction: column; overflow: hidden;
   }
+
+  /* ── header ── */
   header {
-    display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+    display: flex; align-items: center; gap: 14px; padding: 12px 18px;
     border-bottom: 1px solid var(--line); background: var(--panel);
   }
-  header .logo { font-weight: 700; letter-spacing: .4px; }
-  header .logo span { color: var(--accent); }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--bad); }
-  .dot.on { background: var(--ok); }
+  .logo { font-size: 16px; font-weight: 700; letter-spacing: .3px; }
+  .logo span { color: var(--accent); }
+  .room-tag { font: 12px var(--mono); color: var(--faint); }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--bad); box-shadow: 0 0 6px rgba(240,113,110,.6); }
+  .dot.on { background: var(--ok); box-shadow: 0 0 6px rgba(81,216,138,.6); }
+  .chips { display: flex; gap: 8px; margin-left: auto; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
   .chip {
     background: var(--chip); border: 1px solid var(--line); color: var(--dim);
-    border-radius: 99px; padding: 2px 10px; font-size: 12px; white-space: nowrap;
+    border-radius: 99px; padding: 3px 11px; font-size: 12px; white-space: nowrap;
   }
-  .chip.ok { color: var(--ok); border-color: rgba(74,222,128,.35); }
-  .chip.warn { color: var(--warn); border-color: rgba(251,191,36,.35); }
-  .chip.bad { color: var(--bad); border-color: rgba(248,113,113,.4); }
-  .spacer { flex: 1; }
-  main { flex: 1; display: grid; grid-template-columns: 280px 1fr 320px; min-height: 0; }
-  .rail, .detail { background: var(--panel); overflow-y: auto; padding: 12px; }
+  .chip.ok { color: var(--ok); border-color: rgba(81,216,138,.3); background: rgba(81,216,138,.07); }
+  .chip.warn { color: var(--warn); border-color: rgba(242,184,75,.3); background: rgba(242,184,75,.07); }
+  .chip.bad { color: var(--bad); border-color: rgba(240,113,110,.35); background: rgba(240,113,110,.08); }
+
+  button {
+    background: var(--chip); color: var(--text); border: 1px solid var(--line2);
+    border-radius: 8px; padding: 7px 14px; font-size: 13px; cursor: pointer; font-weight: 500;
+    transition: border-color .15s, background .15s;
+  }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); color: #0a0e14; border: none; font-weight: 650; }
+  button.primary:hover { background: #84c2ff; }
+  button.good { background: var(--ok); color: #07210f; border: none; font-weight: 650; }
+  button.good:hover { background: #6ce39e; }
+  button.danger { background: transparent; color: var(--bad); border-color: rgba(240,113,110,.4); }
+
+  /* ── banners ── */
+  .banner {
+    display: flex; gap: 14px; align-items: center; padding: 14px 18px; font-size: 14px;
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(90deg, rgba(242,184,75,.10), rgba(242,184,75,.03));
+  }
+  .banner b { color: var(--warn); }
+  .banner .words {
+    font: 600 14px var(--mono); color: var(--text); background: #0a0d12;
+    border: 1px solid var(--line2); padding: 6px 12px; border-radius: 8px; letter-spacing: .4px;
+  }
+  .banner.danger-b { background: linear-gradient(90deg, rgba(240,113,110,.12), rgba(240,113,110,.03)); }
+  .banner.danger-b b { color: var(--bad); }
+
+  /* ── layout ── */
+  main { flex: 1; display: grid; grid-template-columns: 290px 1fr 330px; min-height: 0; }
+  .rail, .detail { background: var(--panel); overflow-y: auto; padding: 16px 14px; }
   .rail { border-right: 1px solid var(--line); }
   .detail { border-left: 1px solid var(--line); }
   .rail h3, .detail h3 {
-    font-size: 11px; text-transform: uppercase; letter-spacing: .8px;
-    color: var(--dim); margin: 14px 0 6px;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1px; font-weight: 650;
+    color: var(--faint); margin: 18px 0 8px; display: flex; align-items: center; gap: 6px;
   }
-  .rail h3:first-child { margin-top: 0; }
-  .item { padding: 6px 8px; border-radius: 6px; background: var(--panel2); margin-bottom: 5px; font-size: 13px; }
-  .item .meta { color: var(--dim); font-size: 11px; font-family: var(--mono); }
-  .empty { color: var(--faint); font-size: 12px; font-style: italic; }
-  button {
-    background: var(--chip); color: var(--text); border: 1px solid var(--line);
-    border-radius: 6px; padding: 6px 12px; font-size: 13px; cursor: pointer;
+  .rail h3:first-child, .detail h3:first-child { margin-top: 0; }
+  .item {
+    padding: 9px 11px; border-radius: var(--r); background: var(--card);
+    border: 1px solid var(--line); margin-bottom: 6px; font-size: 13px; line-height: 1.45;
   }
-  button:hover { border-color: var(--accent); }
-  button.primary { background: var(--accent); color: #0a0c10; border: none; font-weight: 600; }
-  button.danger { background: transparent; color: var(--bad); border-color: rgba(248,113,113,.4); }
-  button.good { background: var(--ok); color: #0a2010; border: none; font-weight: 600; }
-  .center { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
-  .banner {
-    padding: 10px 14px; border-bottom: 1px solid var(--line); background: #1a1408;
-    color: var(--warn); display: flex; gap: 12px; align-items: center; font-size: 13px;
+  .item .meta { color: var(--faint); font-size: 11px; font-family: var(--mono); margin-top: 3px; }
+  .item b { font-weight: 600; }
+  .empty { color: var(--faint); font-size: 12.5px; padding: 4px 2px; }
+
+  .floorbox { display: flex; align-items: center; gap: 10px; }
+  .floorbox .holder { font-weight: 600; font-size: 13px; }
+  .spacer { flex: 1; }
+
+  /* ── transcript ── */
+  .center { display: flex; flex-direction: column; min-width: 0; min-height: 0; background: var(--bg); }
+  #transcript { flex: 1; overflow-y: auto; padding: 18px 22px; display: flex; flex-direction: column; gap: 2px; }
+  .msg {
+    display: flex; gap: 12px; align-items: baseline; padding: 7px 10px; border-radius: 8px;
   }
-  .banner.hidden { display: none; }
-  .banner .words { font-family: var(--mono); color: var(--text); background: var(--chip); padding: 3px 8px; border-radius: 6px; }
-  #transcript { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
-  .msg { display: flex; gap: 10px; align-items: baseline; }
-  .msg .when { font-family: var(--mono); font-size: 11px; color: var(--faint); flex: none; width: 60px; }
-  .msg .who { font-weight: 600; flex: none; }
+  .msg:hover { background: rgba(255,255,255,.025); }
+  .msg .when { font: 11px var(--mono); color: var(--faint); flex: none; width: 58px; }
+  .msg .who { font-weight: 650; flex: none; font-size: 13px; }
   .msg .who.me { color: var(--accent); }
   .msg .kind {
-    font-size: 10px; font-family: var(--mono); border: 1px solid var(--line);
-    border-radius: 4px; padding: 0 5px; color: var(--dim); flex: none;
+    font: 10px var(--mono); border: 1px solid var(--line2); border-radius: 5px;
+    padding: 1px 6px; color: var(--dim); flex: none; letter-spacing: .3px;
   }
-  .msg .kind.k-code { color: #c084fc; border-color: rgba(192,132,252,.4); }
-  .msg .kind.k-decision { color: var(--ok); border-color: rgba(74,222,128,.35); }
-  .msg .kind.k-action { color: var(--warn); border-color: rgba(251,191,36,.35); }
-  .msg .body { min-width: 0; overflow-wrap: anywhere; }
-  .msg .body .hl { font-weight: 600; }
-  .msg.sys { opacity: .55; font-size: 12px; }
-  .composer { display: flex; gap: 8px; padding: 12px 14px; border-top: 1px solid var(--line); background: var(--panel); }
+  .msg .kind.k-code { color: #c79bff; border-color: rgba(199,155,255,.35); }
+  .msg .kind.k-decision { color: var(--ok); border-color: rgba(81,216,138,.3); }
+  .msg .kind.k-action { color: var(--warn); border-color: rgba(242,184,75,.3); }
+  .msg .kind.k-brain { color: var(--accent2); border-color: rgba(143,157,255,.35); }
+  .msg .htag {
+    font: 10px var(--mono); color: var(--bg); background: var(--dim); border-radius: 5px;
+    padding: 1px 5px; flex: none;
+  }
+  .msg .body { min-width: 0; overflow-wrap: anywhere; color: #cdd5e1; }
+  .msg .body .hl { font-weight: 650; color: var(--text); }
+  .msg.sys { opacity: .45; font-size: 12.5px; }
+
+  .composer { display: flex; gap: 10px; padding: 14px 18px; border-top: 1px solid var(--line); background: var(--panel); }
   .composer input {
-    flex: 1; background: var(--panel2); border: 1px solid var(--line); color: var(--text);
-    border-radius: 8px; padding: 9px 12px; font-size: 14px; outline: none;
+    flex: 1; background: var(--panel2); border: 1px solid var(--line2); color: var(--text);
+    border-radius: 10px; padding: 11px 14px; font-size: 14px; outline: none;
   }
-  .composer input:focus { border-color: var(--accent); }
+  .composer input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(108,181,255,.12); }
+
   pre {
-    background: #0a0c10; border: 1px solid var(--line); border-radius: 8px;
-    padding: 10px; font: 12px/1.5 var(--mono); overflow: auto; max-height: 300px; white-space: pre-wrap;
+    background: #0a0d12; border: 1px solid var(--line2); border-radius: var(--r);
+    padding: 12px; font: 12px/1.55 var(--mono); overflow: auto; max-height: 300px; white-space: pre-wrap;
   }
+
+  /* ── modal ── */
   .modal-back {
-    position: fixed; inset: 0; background: rgba(0,0,0,.6); display: flex;
-    align-items: center; justify-content: center; z-index: 50;
+    position: fixed; inset: 0; background: rgba(4,6,10,.72); backdrop-filter: blur(3px);
+    display: flex; align-items: center; justify-content: center; z-index: 50;
   }
-  .modal-back.hidden { display: none; }
   .modal {
-    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
-    width: min(620px, 92vw); max-height: 86vh; overflow-y: auto; padding: 18px;
+    background: var(--panel); border: 1px solid var(--line2); border-radius: 14px;
+    width: min(640px, 92vw); max-height: 86vh; overflow-y: auto; padding: 22px;
+    box-shadow: 0 24px 80px rgba(0,0,0,.5);
   }
-  .modal h2 { font-size: 16px; margin-bottom: 4px; }
-  .modal .risk { font-family: var(--mono); font-size: 12px; padding: 2px 8px; border-radius: 4px; }
-  .risk.low { background: rgba(74,222,128,.15); color: var(--ok); }
-  .risk.medium { background: rgba(251,191,36,.15); color: var(--warn); }
-  .risk.high { background: rgba(248,113,113,.18); color: var(--bad); }
-  .modal .row { display: flex; gap: 8px; margin-top: 14px; justify-content: flex-end; align-items: center; }
-  .floorbox { display: flex; align-items: center; gap: 8px; }
-  .floorbox .holder { font-family: var(--mono); font-size: 13px; }
+  .modal h2 { font-size: 17px; margin-bottom: 6px; }
+  .modal .sub { color: var(--dim); font-size: 13px; margin-bottom: 12px; }
+  .risk { font: 11px var(--mono); padding: 2px 9px; border-radius: 5px; }
+  .risk.low { background: rgba(81,216,138,.14); color: var(--ok); }
+  .risk.medium { background: rgba(242,184,75,.14); color: var(--warn); }
+  .risk.high { background: rgba(240,113,110,.16); color: var(--bad); }
+  .modal .row { display: flex; gap: 10px; margin-top: 16px; align-items: center; }
+  .modal label { font-size: 12px; color: var(--dim); display: flex; gap: 6px; align-items: center; }
 </style>
 </head>
 <body>
   <header>
     <div class="logo">pair<span>wave</span></div>
     <div class="dot" id="conn-dot" title="relay connection"></div>
-    <span class="chip" id="room-chip">room —</span>
-    <span class="chip" id="verify-chip">peer: unverified</span>
-    <span class="chip" id="charter-chip">charter: none</span>
-    <span class="chip" id="chain-chip">log ✓</span>
-    <span class="chip hidden" id="live-chip">LIVE MODE</span>
-    <span class="chip hidden" id="auto-chip">auto-approve ON</span>
-    <div class="spacer"></div>
-    <button id="handoff-btn" title="Write the session handoff file now">Write handoff file</button>
+    <span class="room-tag" id="room-chip">—</span>
+    <div class="chips">
+      <span class="chip" id="verify-chip">peer: unverified</span>
+      <span class="chip" id="charter-chip">charter: none</span>
+      <span class="chip" id="chain-chip">log ✓</span>
+      <span class="chip hidden" id="live-chip">LIVE</span>
+      <span class="chip hidden" id="auto-chip">auto-approve</span>
+      <button id="handoff-btn" title="Snapshot this session to a file you can resume from">Save session snapshot</button>
+    </div>
   </header>
 
   <div class="banner hidden" id="sas-banner">
-    <strong>Verify your peer:</strong> read these words to each other on a call —
+    <div><b>One-time safety check</b> — read these words to each other; they must be identical on both screens:</div>
     <span class="words" id="sas-words">…</span>
-    <button class="good" id="sas-confirm">Words match — mark peer verified</button>
+    <button class="good" id="sas-confirm">They match — verify peer</button>
   </div>
-  <div class="banner hidden" id="keychange-banner" style="color: var(--bad);">
-    <strong>⚠ Peer identity key CHANGED.</strong> This can mean a reinstall — or an impersonator. Re-verify the
-    SAS words out-of-band before trusting anything.
+  <div class="banner danger-b hidden" id="keychange-banner">
+    <b>⚠ Peer identity key changed.</b>&nbsp;Could be a reinstall — or an impersonator. Re-check the words before trusting anything.
   </div>
 
   <main>
     <aside class="rail">
       <h3>Floor</h3>
       <div class="item floorbox">
-        <span class="holder" id="floor-holder">none</span>
+        <span class="holder" id="floor-holder">free</span>
         <div class="spacer"></div>
         <button id="floor-btn">Claim floor</button>
       </div>
       <h3>People</h3>
       <div id="people"></div>
       <h3>Open questions</h3>
-      <div id="questions"><div class="empty">None yet.</div></div>
+      <div id="questions"><div class="empty">None.</div></div>
       <h3>Decisions</h3>
       <div id="decisions"><div class="empty">None yet.</div></div>
-      <h3>Shared brain <span id="brain-count" style="color:var(--accent)"></span></h3>
-      <div id="brain"><div class="empty">Nothing remembered yet — your Claudes build this together.</div></div>
-      <h3>Shared code (inert until approved)</h3>
+      <h3>Shared brain <span id="brain-count" style="color:var(--accent2)"></span></h3>
+      <div id="brain"><div class="empty">Empty — your Claudes fill this as they learn.</div></div>
+      <h3>Shared code <span style="color:var(--faint);text-transform:none;letter-spacing:0">(inert until approved)</span></h3>
       <div id="artifacts"><div class="empty">None yet.</div></div>
-      <h3>Awaiting the other side</h3>
+      <h3>Waiting on the other side</h3>
       <div id="pending-out"><div class="empty">Nothing pending.</div></div>
     </aside>
 
     <section class="center">
       <div id="transcript"></div>
       <div class="composer">
-        <input id="chat-input" placeholder="Say something to the channel (sent as you, the human)…" />
+        <input id="chat-input" placeholder="Message the channel as yourself…" />
         <button class="primary" id="chat-send">Send</button>
       </div>
     </section>
 
     <aside class="detail">
-      <h3>Permission requests for you</h3>
-      <div id="perm-list"><div class="empty">None — nothing is waiting on your approval.</div></div>
-      <h3>Approved, waiting for your Claude to apply</h3>
+      <h3>Needs your approval</h3>
+      <div id="perm-list"><div class="empty">Nothing waiting on you.</div></div>
+      <h3>Approved — ready for your Claude</h3>
       <div id="task-list"><div class="empty">None.</div></div>
-      <h3>Recent activity headlines</h3>
+      <h3>Recent headlines</h3>
       <div id="headlines"><div class="empty">None yet.</div></div>
     </aside>
   </main>
@@ -172,15 +213,13 @@
   <div class="modal-back hidden" id="modal-back">
     <div class="modal">
       <h2 id="m-title">Permission request</h2>
-      <div style="color: var(--dim); font-size: 13px;" id="m-sub"></div>
-      <p style="margin: 12px 0 6px;" id="m-summary"></p>
+      <div class="sub" id="m-sub"></div>
+      <p style="margin: 0 0 8px;" id="m-summary"></p>
       <pre id="m-payload"></pre>
       <div class="row">
-        <label style="font-size:12px;color:var(--dim);display:flex;gap:6px;align-items:center;">
-          <input type="checkbox" id="m-always" /> always allow this action kind (this session)
-        </label>
+        <label><input type="checkbox" id="m-always" /> always allow this action kind (this session)</label>
         <div class="spacer"></div>
-        <button class="danger" id="m-deny">Deny request</button>
+        <button class="danger" id="m-deny">Deny</button>
         <button class="good" id="m-approve">Approve once</button>
       </div>
     </div>
@@ -204,7 +243,8 @@
     if (m.kind === "chat" || m.kind === "question" || m.kind === "answer") return esc(b.text);
     if (m.kind === "context") return `<span class="hl">${esc(b.headline)}</span> — ${esc(b.text)}`;
     if (m.kind === "decision") return `<span class="hl">${esc(b.headline)}</span> — ${esc(b.decision)}`;
-    if (m.kind === "code") return `<span class="hl">${esc(b.headline)}</span> (${esc(b.language)}${b.isPatch ? " patch" : ""}, inert in quarantine)`;
+    if (m.kind === "code") return `<span class="hl">${esc(b.headline)}</span> (${esc(b.language)}${b.isPatch ? " patch" : ""}, inert until approved)`;
+    if (m.kind === "brain.entry") return `<span class="hl">${esc(b.headline)}</span> — saved to the shared brain`;
     if (m.kind === "action.request") return `requests <b>${esc(b.action)}</b>: ${esc(b.summary)}`;
     if (m.kind === "action.result") return `action result: ${b.ok ? "✓ succeeded" : "✗ failed"}${b.detail ? " — " + esc(b.detail) : ""}`;
     if (m.kind === "summary") return `<span class="hl">summary</span> — ${esc((b.text || "").slice(0, 200))}`;
@@ -219,6 +259,7 @@
   function kindClass(k) {
     if (k === "code") return "k-code";
     if (k === "decision") return "k-decision";
+    if (k === "brain.entry") return "k-brain";
     if (k.startsWith("action")) return "k-action";
     return "";
   }
@@ -232,11 +273,11 @@
     myPeerId = state.me && state.me.peerId;
 
     $("conn-dot").className = "dot" + (state.relay && state.relay.connected ? " on" : "");
-    $("room-chip").textContent = "room " + (state.roomId || "—");
+    $("room-chip").textContent = state.roomId || "—";
     const v = state.verification || {};
-    $("verify-chip").textContent = "peer: " + (v.verified ? "verified ✓" : "UNVERIFIED");
+    $("verify-chip").textContent = v.verified ? "peer verified ✓" : "peer UNVERIFIED";
     $("verify-chip").className = "chip " + (v.verified ? "ok" : "warn");
-    $("charter-chip").textContent = "charter: " + (state.charter && state.charter.agreed ? (state.charter.title || "agreed") : "none yet");
+    $("charter-chip").textContent = state.charter && state.charter.agreed ? (state.charter.title || "charter agreed") : "no charter yet";
     $("charter-chip").className = "chip " + (state.charter && state.charter.agreed ? "ok" : "warn");
     $("chain-chip").textContent = state.chainOk ? "log integrity ✓" : "LOG INTEGRITY BROKEN";
     $("chain-chip").className = "chip " + (state.chainOk ? "ok" : "bad");
@@ -246,37 +287,37 @@
     $("auto-chip").classList.toggle("hidden", posture === "none");
 
     $("sas-banner").classList.toggle("hidden", v.verified || !v.sasWords);
-    if (v.sasWords) $("sas-words").textContent = v.sasWords.join(" · ");
+    if (v.sasWords) $("sas-words").textContent = v.sasWords.join("  ·  ");
     $("keychange-banner").classList.toggle("hidden", !v.changed);
 
     const holder = state.floor ? state.floor.holder : "none";
-    $("floor-holder").textContent = holder === "none" ? "free" : (holder === myPeerId ? "YOU hold it" : holder + " holds it");
+    $("floor-holder").textContent = holder === "none" ? "free" : (holder === myPeerId ? "you hold it" : holder + " holds it");
     $("floor-btn").textContent = holder === myPeerId ? "Yield floor" : "Claim floor";
 
     const peers = [{ peerId: myPeerId, name: (state.me && state.me.name) + " (you)" }].concat(state.peers || []);
     renderList($("people"), peers, (p) => `<div class="item">${esc(p.name)} <span class="meta">${esc(p.peerId)}</span></div>`, "—");
 
     const led = state.ledger || {};
-    renderList($("questions"), led.openQuestions || [], (q) => `<div class="item">${esc(q.text)}<div class="meta">${esc(q.peerId)} · ${hhmm(q.ts)}</div></div>`, "None yet.");
+    renderList($("questions"), led.openQuestions || [], (q) => `<div class="item">${esc(q.text)}<div class="meta">${esc(q.peerId)} · ${hhmm(q.ts)}</div></div>`, "None.");
     renderList($("decisions"), led.decisions || [], (d) => `<div class="item"><b>${esc(d.headline)}</b><div class="meta">${esc(d.decision)}</div></div>`, "None yet.");
     const br = state.brain || { total: 0, recent: [] };
     $("brain-count").textContent = br.total ? `(${br.total})` : "";
-    renderList($("brain"), (br.recent || []).slice().reverse(), (e) => `<div class="item">${esc(e.headline)}<div class="meta">${esc(e.entryKind)} · ${esc(e.peerId)} · ${hhmm(e.ts)}</div></div>`, "Nothing remembered yet — your Claudes build this together.");
+    renderList($("brain"), (br.recent || []).slice().reverse(), (e) => `<div class="item">${esc(e.headline)}<div class="meta">${esc(e.entryKind)} · ${esc(e.peerId)} · ${hhmm(e.ts)}</div></div>`, "Empty — your Claudes fill this as they learn.");
     renderList($("artifacts"), led.sharedArtifacts || [], (a) => `<div class="item">${esc(a.headline)}<div class="meta">${esc(a.language)}${a.isPatch ? " patch" : ""} · from ${esc(a.peerId)}</div></div>`, "None yet.");
-    renderList($("pending-out"), (led.pendingActions || []).filter((p) => p.peerId === myPeerId), (p) => `<div class="item">${esc(p.summary)}<div class="meta">sent ${hhmm(p.ts)} — peer has not acted yet</div></div>`, "Nothing pending.");
+    renderList($("pending-out"), (led.pendingActions || []).filter((p) => p.peerId === myPeerId), (p) => `<div class="item">${esc(p.summary)}<div class="meta">sent ${hhmm(p.ts)} — not acted on yet</div></div>`, "Nothing pending.");
     renderList($("headlines"), (led.headlines || []).slice().reverse(), (h) => `<div class="item">${esc(h.headline)}<div class="meta">${esc(h.kind)} · ${esc(h.peerId)} · ${hhmm(h.ts)}</div></div>`, "None yet.");
 
     const perms = state.pendingPermissions || [];
     renderList($("perm-list"), perms, (p) => `
       <div class="item">
-        <b>${esc(p.action)}</b> <span class="risk ${esc(p.risk)}" style="float:right">${esc(p.risk)} risk</span>
+        <b>${esc(p.action)}</b> <span class="risk ${esc(p.risk)}" style="float:right">${esc(p.risk)}</span>
         <div>${esc(p.summary)}</div>
         <div class="meta">from ${esc(p.fromPeerId)} · ${hhmm(p.createdAt)}</div>
-        <div style="margin-top:6px"><button onclick="openPerm('${esc(p.id)}')">Review &amp; decide…</button></div>
-      </div>`, "None — nothing is waiting on your approval.");
+        <div style="margin-top:7px"><button onclick="openPerm('${esc(p.id)}')">Review &amp; decide</button></div>
+      </div>`, "Nothing waiting on you.");
     renderList($("task-list"), state.approvedTasks || [], (t) => `
       <div class="item">approved: <b>${esc(t.action)}</b>${t.targetPath ? " → " + esc(t.targetPath) : ""}
-      <div class="meta">ask your Claude: “apply the approved pairwave task” (pair_apply ${esc(t.permissionId)})</div></div>`, "None.");
+      <div class="meta">tell your Claude: “apply the approved pairwave task”</div></div>`, "None.");
 
     const firstNew = perms.find((p) => !dismissed.has(p.id));
     if (firstNew && $("modal-back").classList.contains("hidden")) openPerm(firstNew.id);
@@ -288,7 +329,7 @@
       <div class="msg${m.kind.startsWith("system.") ? " sys" : ""}">
         <span class="when">${hhmm(m.ts)}</span>
         <span class="who${m.peerId === myPeerId ? " me" : ""}">${esc(m.from)}</span>
-        <span class="kind ${kindClass(m.kind)}">${esc(m.kind)}${m.origin === "human" ? " 🧍" : ""}</span>
+        <span class="kind ${kindClass(m.kind)}">${esc(m.kind)}</span>${m.origin === "human" ? '<span class="htag">human</span>' : ""}
         <span class="body">${gist(m)}</span>
       </div>`).join("");
     if (stick) t.scrollTop = t.scrollHeight;
@@ -311,7 +352,7 @@
   $("m-deny").onclick = async () => { await api(`/api/permissions/${activePermId}`, { decision: "deny" }); closeModal(); refresh(); };
 
   $("sas-confirm").onclick = async () => { await api("/api/verify", { verified: true }); refresh(); };
-  $("handoff-btn").onclick = async () => { const r = await api("/api/handoff", {}); $("handoff-btn").textContent = "Handoff written ✓"; setTimeout(() => $("handoff-btn").textContent = "Write handoff file", 2500); };
+  $("handoff-btn").onclick = async () => { await api("/api/handoff", {}); $("handoff-btn").textContent = "Snapshot saved ✓"; setTimeout(() => $("handoff-btn").textContent = "Save session snapshot", 2500); };
   $("floor-btn").onclick = async () => {
     const holder = state && state.floor ? state.floor.holder : "none";
     if (holder === myPeerId) {
@@ -330,12 +371,11 @@
   $("chat-send").onclick = sendChat;
   $("chat-input").addEventListener("keydown", (e) => { if (e.key === "Enter") sendChat(); });
 
-  // ?nosse → poll-only mode (useful for screenshot/automation tools that wait for network idle)
   if (!new URLSearchParams(location.search).has("nosse")) {
     try {
       const es = new EventSource("/api/events");
       es.onmessage = () => refresh();
-    } catch { /* SSE unsupported → polling below covers it */ }
+    } catch { /* polling covers it */ }
   }
   setInterval(refresh, 4000);
   refresh();

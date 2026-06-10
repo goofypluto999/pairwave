@@ -32,8 +32,17 @@ async function readBody(req: http.IncomingMessage): Promise<Record<string, unkno
 }
 
 export async function startUiServer(rt: CompanionRuntime, preferredPort = 7591): Promise<UiHandle> {
-  // The page is shipped inside the package (../ui/index.html relative to dist/).
-  const page = readFileSync(join(HERE, "..", "ui", "index.html"), "utf8");
+  // The page ships inside the package (../ui/index.html relative to dist/). Read at startup as a
+  // guaranteed-good fallback, but serve fresh from disk per request so UI updates land on refresh.
+  const pagePath = join(HERE, "..", "ui", "index.html");
+  const pageFallback = readFileSync(pagePath, "utf8");
+  const freshPage = (): string => {
+    try {
+      return readFileSync(pagePath, "utf8");
+    } catch {
+      return pageFallback;
+    }
+  };
   const sseClients = new Set<http.ServerResponse>();
 
   const unsubscribe = rt.onChange(() => {
@@ -51,7 +60,7 @@ export async function startUiServer(rt: CompanionRuntime, preferredPort = 7591):
     try {
       if (req.method === "GET" && (u.pathname === "/" || u.pathname === "/index.html")) {
         res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
-        return res.end(page);
+        return res.end(freshPage());
       }
       if (req.method === "GET" && u.pathname === "/api/state") {
         return json(res, 200, { ...(await rt.status()), chainOk: rt.chainVerified() });

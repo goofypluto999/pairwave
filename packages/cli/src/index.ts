@@ -43,12 +43,13 @@ function printNextSteps(projectDir: string, invite?: string): void {
     out("");
     out(`    ${invite}`);
     out("");
-    out("  They run, inside THEIR project folder:");
-    out(`    npx pairwave join "<that code>"`);
+    out("  They run, inside THEIR project folder (Windows | macOS/Linux):");
+    out(`    iex "& { $(iwr -useb https://raw.githubusercontent.com/goofypluto999/pairwave/main/scripts/install.ps1) } join <that code>"`);
+    out(`    curl -fsSL https://raw.githubusercontent.com/goofypluto999/pairwave/main/scripts/install.sh | bash -s -- join "<that code>"`);
     out("");
   }
   out("  Then on each side:");
-  out("    1. Make sure a relay is reachable (host runs: npx pairwave relay).");
+  out("    1. Make sure a relay is reachable (host runs: pairwave relay).");
   out("    2. Open Claude Code in this folder and approve the 'pairwave' MCP server.");
   out("    3. Type /pairwave — the skill takes it from there (SAS verify → charter → collaborate).");
   out("    4. Dashboard: the companion prints its http://127.0.0.1:<port> when it starts.");

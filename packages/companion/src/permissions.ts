@@ -20,6 +20,8 @@ export type PermissionRequest = {
   targetPath?: string | undefined;
   /** The quarantined code artifact this action would apply, if any. */
   fromCodeMsgId?: string | undefined;
+  /** Danger-guard hits (SPEC §9.6). Non-empty ⇒ high risk and NEVER auto-approvable. */
+  dangerFlags?: { rule: string; detail: string }[] | undefined;
 };
 
 export type PermissionStatus = "pending" | "approved" | "denied";

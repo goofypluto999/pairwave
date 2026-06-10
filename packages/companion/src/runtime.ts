@@ -36,6 +36,7 @@ import { RelayClient } from "./relayclient.js";
 import { loadConfig, loadOrCreateIdentity, RoomStore, type RoomConfig, type RoomState } from "./persist.js";
 import { PermissionQueue, normalizeRisk, gate1Decision, type ApplyTask, type PendingPermission } from "./permissions.js";
 import { quarantineCode, readQuarantined, type QuarantinedArtifact } from "./quarantine.js";
+import { scanDanger } from "./guard.js";
 import { deriveLedger, type ActivityLedger } from "./ledger.js";
 import { deriveBrain, recallBrain, type BrainView, type RecallHit, type BrainEntry } from "./brain.js";
 import { writeHandoff, readLatestHandoff } from "./handoff.js";
@@ -259,7 +260,9 @@ export class CompanionRuntime {
         .some((x) => x.kind === "action.result" && x.body.requestMsgId === m.msgId);
       const alreadyQueued = [...this.queue.pending()].some((p) => p.requestMsgId === m.msgId);
       if (!resolved && !alreadyQueued) {
-        const risk = normalizeRisk(m.body.action, m.body.risk);
+        // Danger guard (SPEC §9.6): flagged actions are forced HIGH and can never auto-approve.
+        const dangerFlags = scanDanger(m.body.action, m.body.payload, m.body.targetPath);
+        const risk = dangerFlags.length ? "high" : normalizeRisk(m.body.action, m.body.risk);
         const pending = this.queue.enqueue({
           requestMsgId: m.msgId,
           fromPeerId: m.sender.peerId,
@@ -269,9 +272,12 @@ export class CompanionRuntime {
           payload: m.body.payload,
           targetPath: m.body.targetPath,
           fromCodeMsgId: m.body.fromCodeMsgId,
+          dangerFlags: dangerFlags.length ? dangerFlags : undefined,
         });
         const posture = this.agreedCharter()?.autoApprove ?? "none";
-        const auto = this.sessionAllow.has(m.body.action) || gate1Decision(risk, posture) === "approve";
+        const auto =
+          dangerFlags.length === 0 &&
+          (this.sessionAllow.has(m.body.action) || gate1Decision(risk, posture) === "approve");
         if (auto) this.decidePermission(pending.id, "approve");
       }
     }

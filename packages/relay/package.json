@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "@pairwave/relay",
   "version": "0.0.0",
   "description": "Pairwave untrusted relay: routes encrypted envelopes by roomId. Sees only ciphertext.",

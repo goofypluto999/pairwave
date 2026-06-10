@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "@pairwave/protocol",
   "version": "0.0.0",
   "description": "Pairwave wire protocol + crypto core: envelopes, messages, turn-taking, E2E seal/open, SAS, hash-DAG.",

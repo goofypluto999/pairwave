@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "@pairwave/companion",
   "version": "0.1.0",
   "description": "Pairwave local companion: MCP server for Claude Code + E2E relay client + localhost dashboard.",

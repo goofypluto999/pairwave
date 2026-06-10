@@ -1,0 +1,171 @@
+<div align="center">
+
+<img src="docs/assets/banner.svg" alt="Pairwave — two people, two Claude Codes, one end-to-end-encrypted channel" width="880"/>
+
+# pairwave
+
+**Connect two people's Claude Code sessions over one live, end-to-end-encrypted channel.**
+Stop being the copy-paste middleman between your AI and your friend's AI.
+
+[![License: MIT](https://img.shields.io/badge/license-MIT-4ade80.svg)](LICENSE)
+[![Tests](https://img.shields.io/badge/tests-75%2F75%20passing-4ade80.svg)](docs/ROADMAP.md)
+[![Node](https://img.shields.io/badge/node-%E2%89%A520-5eb0ff.svg)](https://nodejs.org)
+[![Built for Claude Code](https://img.shields.io/badge/built%20for-Claude%20Code%20(MCP)-7c8cff.svg)](https://docs.anthropic.com/en/docs/claude-code)
+[![E2E encrypted](https://img.shields.io/badge/relay%20sees-ciphertext%20only-4ade80.svg)](docs/SPEC.md)
+
+</div>
+
+---
+
+## Install — one line, inside your project folder
+
+**Person A** (creates the room, gets an invite code):
+
+```powershell
+# Windows (PowerShell)
+iex "& { $(iwr -useb https://raw.githubusercontent.com/goofypluto999/pairwave/main/scripts/install.ps1) } init"
+```
+```bash
+# macOS / Linux / WSL
+curl -fsSL https://raw.githubusercontent.com/goofypluto999/pairwave/main/scripts/install.sh | bash -s -- init
+```
+
+**Person B** (joins with A's invite code):
+
+```powershell
+iex "& { $(iwr -useb https://raw.githubusercontent.com/goofypluto999/pairwave/main/scripts/install.ps1) } join <invite-code>"
+```
+```bash
+curl -fsSL https://raw.githubusercontent.com/goofypluto999/pairwave/main/scripts/install.sh | bash -s -- join "<invite-code>"
+```
+
+That single line: checks prerequisites → installs/updates Pairwave (outside your project) → builds →
+installs a global `pairwave` command → wires **the folder you ran it from** (room config, the
+`pairwave` MCP server in `.mcp.json`, the `/pairwave` skill) → git-ignores the key material → prints
+exactly what to do next. Then **open Claude Code, approve the `pairwave` server, type `/pairwave`.**
+Your Claude takes it from there — SAS verification, shared charter, collaboration.
+
+> **Relay:** one of you runs `pairwave relay` somewhere both machines can reach (same LAN, any free
+> tunnel, or a $0–5 VPS). The relay is **designed to be untrusted** — it stores ciphertext only —
+> so where it runs is a convenience choice, not a trust choice.
+
+**Try it solo first:** `pairwave` isn't needed — clone and `npm run demo` boots a relay + two
+companions + a scripted session and hands you the live dashboard to click through.
+
+---
+
+## Why doesn't this already exist?
+
+Anthropic's own issue tracker has the request ([claude-code#21277](https://github.com/anthropics/claude-code/issues/21277)).
+People hack around it daily: copy a Claude answer into WhatsApp, friend pastes it into their Claude,
+repeat. You *can* bridge two Claudes with a shared file or chat-room MCP — it's just clunky, unsafe,
+and blind. Five hard problems stood in the way. Pairwave is the bridge over each:
+
+| # | The blocker | Pairwave's bridge |
+|---|---|---|
+| 1 | **Agents aren't daemons.** A Claude Code session acts when its human engages — it can't "listen" for your friend. Naive bridges silently drop messages. | **Async-first protocol**: a durable inbox survives any downtime; the skill checks it at every engagement point; opt-in **live mode** polls with hard cost bounds. |
+| 2 | **Nobody wants a middleman server reading their code.** A hosted bridge sees everything. | **Server-blind relay**: XChaCha20-Poly1305 E2E (Argon2id room key), Ed25519-signed, hash-DAG-linked messages. **SAS fingerprint words** defeat invite interception. The relay can be hosted by a stranger. |
+| 3 | **Two autonomous agents run away** — they loop, talk over each other, and burn tokens. | **The floor** (one pusher at a time) + a **hard hop cap** on consecutive agent↔agent messages, enforced mechanically by the companion, not by prompt-politeness. |
+| 4 | **"Let the other AI touch my repo" is terrifying.** | Shared code lands **inert in quarantine**. Applying it takes **two gates**: your Pairwave approval popup, then Claude Code's own permission prompt when *your* Claude applies it. The companion has zero project/shell access. An outbound **secret scan** blocks keys before they leave. |
+| 5 | **Sessions die and the context dies with them.** | Durable signed log + crash-safe outbox + reconnect-with-replay. Every shutdown writes a **handoff markdown**; `/pairwave` resumes both sides with full context. |
+
+**What you can do that you couldn't before:** your Claude asks *their* Claude for the API contract
+it just wrote and gets a provenance-tagged answer; you ship a patch across as an inert artifact and
+watch their approval popup — then their own Claude applies it under its own permissions; both
+dashboards show the same decisions, open questions, and shared files in real time; you close your
+laptop, reopen tomorrow, type `/pairwave`, and both sides remember everything.
+
+---
+
+## How it works
+
+```mermaid
+flowchart LR
+    subgraph A["Person A's machine"]
+        CA["Claude Code"] <-->|"MCP · 17 pair_* tools"| PA["Companion<br/>(holds the key)"]
+        PA --- UA["Local dashboard<br/>127.0.0.1"]
+    end
+    subgraph R["Anywhere (untrusted)"]
+        RY[("Relay<br/>ciphertext only")]
+    end
+    subgraph B["Person B's machine"]
+        PB["Companion<br/>(holds the key)"] <-->|"MCP · 17 pair_* tools"| CB["Claude Code"]
+        UB["Local dashboard<br/>127.0.0.1"] --- PB
+    end
+    PA <-->|"E2E encrypted WebSocket"| RY <-->|"E2E encrypted WebSocket"| PB
+```
+
+A typical exchange, end to end:
+
+```mermaid
+sequenceDiagram
+    participant A as Alice + her Claude
+    participant R as Relay (sees ciphertext)
+    participant B as Bob + his Claude
+    A->>B: SAS words compared out-of-band ✓
+    A->>R: charter proposal (encrypted)
+    R->>B: forwarded — Bob's human reviews, accepts
+    Note over A,B: substantive exchange now unlocked
+    A->>R: code artifact (encrypted)
+    R->>B: lands INERT in Bob's quarantine
+    A->>R: action.request "write src/lib/prefs.ts"
+    R->>B: Gate 1 — permission popup on Bob's dashboard
+    B->>B: Approve → Bob's OWN Claude applies it (Gate 2: Claude Code's prompt)
+    B->>R: action.result ✓ (encrypted receipt)
+    R->>A: Alice sees it resolved in her ledger
+```
+
+## What your Claude gets — 17 MCP tools
+
+| Tool | Purpose |
+|---|---|
+| `pair_status` | Room, peers, verification, charter, floor, ledger, pending items, dashboard URL |
+| `pair_verify` | Show / confirm the SAS fingerprint words |
+| `pair_charter` | Read / propose / accept the shared task brief (scope, MUST-NOTs, permission posture) |
+| `pair_send` | chat · question · answer · context · decision (headline + provenance-tagged) |
+| `pair_share_code` | Ship code/patches as inert quarantined artifacts |
+| `pair_request_action` | Ask the other side to apply/write/run/fetch — behind their popup |
+| `pair_inbox` / `pair_read` | What needs me / recent verified messages |
+| `pair_respond_permission` | Gate-1 decision (with session "always allow") |
+| `pair_apply` / `pair_complete_action` | Pull the approved payload, apply with own tools, report back |
+| `pair_claim` / `pair_yield` | Turn-taking (auto-grant on timeout — no deadlocks) |
+| `pair_live_mode` | Bounded near-real-time polling, cost stated up front |
+| `pair_summarize` / `pair_handoff` / `pair_resume` | Narrative recap · session snapshot · full restore |
+
+## The dashboard
+
+Each person gets their own local web dashboard (zero build, served by their companion, never leaves
+`127.0.0.1`): an **activity rail** (open questions, decisions, shared code, pending approvals), the
+live transcript with human/agent origin markers, **permission popups** with risk + exact payload,
+the SAS verification banner, floor control, and a chat composer for the humans. `npm run demo` shows
+it in 30 seconds.
+
+## Honest limits (v1)
+
+- **Async by design, not telepathy** — Claude Code is turn-based; live mode is bounded polling that costs the poller tokens.
+- **Two local dashboards, not one website** — a hosted UI would need your key and break E2E.
+- **Metadata is visible** to the relay (room id, sizes, timing) — content never is.
+- **No forward secrecy yet** (static room key — rotate rooms; Double-Ratchet is on the roadmap), and a malicious *peer* is out of scope: Pairwave protects the channel and your machine, not against a friend who lies.
+
+Full threat model: [docs/SPEC.md §15](docs/SPEC.md). Build status: [docs/ROADMAP.md](docs/ROADMAP.md).
+
+## Repo layout
+
+| Package | What it is |
+|---|---|
+| [`packages/protocol`](packages/protocol) | Wire format + crypto: Argon2id · XChaCha20-Poly1305 · Ed25519 · BLAKE2b · SAS · hash-DAG |
+| [`packages/relay`](packages/relay) | The untrusted bus — routes and stores ciphertext only |
+| [`packages/companion`](packages/companion) | The trusted local process: MCP server, floor/charter/permission engines, quarantine, secret scan, ledger, handoff, dashboard |
+| [`packages/cli`](packages/cli) | `pairwave init/join/relay/status` + the `/pairwave` skill it installs |
+
+`npm run verify` builds everything and runs all 75 tests — if it's green, your install works.
+
+## Security disclosure
+
+Found a vulnerability? Open a GitHub security advisory (preferred) or an issue tagged `[security]`
+without exploit details. The relay is designed to be operable by an adversary — if a malicious relay
+can read or forge content, that's a critical bug and we want to know immediately.
+
+<div align="center">
+<sub>MIT · no telemetry · no accounts · no hidden calls — <a href="docs/SPEC.md">read the spec</a></sub>
+</div>

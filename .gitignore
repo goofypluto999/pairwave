@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+.pnp.*
+.yarn/*
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Env / secrets — never commit
+.env
+.env.*
+*.pem
+*.key
+
+# Pairwave local state — PRIVACY-CRITICAL.
+# Contains the session key material and DECRYPTED transcripts / handoff files.
+# These must never leave the machine via git.
+.pairwave/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json

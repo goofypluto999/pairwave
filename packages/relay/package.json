@@ -1,0 +1,25 @@
+{
+  "name": "@pairwave/relay",
+  "version": "0.0.0",
+  "description": "Pairwave untrusted relay: routes encrypted envelopes by roomId. Sees only ciphertext.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "pairwave-relay": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "start": "node ./dist/index.js",
+    "test": "node --import tsx --test test/relay.test.ts"
+  },
+  "dependencies": {
+    "@pairwave/protocol": "0.0.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/ws": "^8.5.10",
+    "tsx": "^4.16.0"
+  }
+}

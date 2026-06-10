@@ -1,0 +1,27 @@
+{
+  "name": "pairwave",
+  "version": "0.1.0",
+  "description": "Connect two people's Claude Code sessions over a live, end-to-end-encrypted channel.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "pairwave": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "skill"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --import tsx --test test/invite.test.ts test/setup.test.ts"
+  },
+  "dependencies": {
+    "@pairwave/companion": "0.1.0",
+    "@pairwave/relay": "0.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "tsx": "^4.16.0"
+  }
+}

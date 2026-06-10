@@ -1,0 +1,28 @@
+{
+  "name": "pairwave-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "description": "A live, end-to-end-encrypted bridge between two people's Claude Code sessions.",
+  "license": "MIT",
+  "type": "module",
+  "workspaces": [
+    "packages/protocol",
+    "packages/relay",
+    "packages/companion",
+    "packages/cli"
+  ],
+  "scripts": {
+    "build": "npm -w @pairwave/protocol run build && npm -w @pairwave/relay run build && npm -w @pairwave/companion run build && npm -w pairwave run build",
+    "test": "npm -w @pairwave/protocol test && npm -w @pairwave/relay test && npm -w @pairwave/companion test && npm -w pairwave test",
+    "verify": "npm run build && npm test",
+    "relay": "npm -w @pairwave/relay run start",
+    "companion": "npm -w @pairwave/companion run start",
+    "demo": "node scripts/demo.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0"
+  }
+}

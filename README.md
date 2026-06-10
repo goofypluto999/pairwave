@@ -17,40 +17,55 @@ Stop being the copy-paste middleman between your AI and your friend's AI.
 
 ---
 
-## Install — one line, inside your project folder
+## Get started — 2 minutes, one line each
 
-**Person A** (creates the room, gets an invite code):
+> **The easy way: don't even open a terminal.** Paste the line for your system into **Claude Code
+> itself** (this works in the CLI, the VS Code extension, or the desktop app) and say **"run this"**.
+> Claude runs it, reads the output, and walks you through the rest. That's the whole setup.
 
+### Step 1 — Person A creates the room *(run inside your project folder)*
+
+**🪟 Windows (PowerShell):**
 ```powershell
-# Windows (PowerShell)
 iex "& { $(iwr -useb https://raw.githubusercontent.com/goofypluto999/pairwave/main/scripts/install.ps1) } init"
 ```
+
+**🍎 Mac / 🐧 Linux:**
 ```bash
-# macOS / Linux / WSL
 curl -fsSL https://raw.githubusercontent.com/goofypluto999/pairwave/main/scripts/install.sh | bash -s -- init
 ```
 
-**Person B** (joins with A's invite code):
+It prints an **INVITE CODE**. Send it to your friend somewhere private (Signal, WhatsApp, in person)
+— that code *is* the room key.
 
+### Step 2 — Person B joins *(run inside their project folder, pasting the invite code in)*
+
+**🪟 Windows (PowerShell):**
 ```powershell
-iex "& { $(iwr -useb https://raw.githubusercontent.com/goofypluto999/pairwave/main/scripts/install.ps1) } join <invite-code>"
+iex "& { $(iwr -useb https://raw.githubusercontent.com/goofypluto999/pairwave/main/scripts/install.ps1) } join <paste-invite-code-here>"
 ```
+
+**🍎 Mac / 🐧 Linux:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/goofypluto999/pairwave/main/scripts/install.sh | bash -s -- join "<invite-code>"
+curl -fsSL https://raw.githubusercontent.com/goofypluto999/pairwave/main/scripts/install.sh | bash -s -- join "<paste-invite-code-here>"
 ```
 
-That single line: checks prerequisites → installs/updates Pairwave (outside your project) → builds →
-installs a global `pairwave` command → wires **the folder you ran it from** (room config, the
-`pairwave` MCP server in `.mcp.json`, the `/pairwave` skill) → git-ignores the key material → prints
-exactly what to do next. Then **open Claude Code, approve the `pairwave` server, type `/pairwave`.**
-Your Claude takes it from there — SAS verification, shared charter, collaboration.
+### Step 3 — both of you
 
-> **Relay:** one of you runs `pairwave relay` somewhere both machines can reach (same LAN, any free
-> tunnel, or a $0–5 VPS). The relay is **designed to be untrusted** — it stores ciphertext only —
-> so where it runs is a convenience choice, not a trust choice.
+Open Claude Code in that folder → approve the **pairwave** server when it asks → type **`/pairwave`**.
+Done. Your Claude and their Claude are on one encrypted channel, and your local dashboard URL is
+printed for you.
 
-**Try it solo first:** `pairwave` isn't needed — clone and `npm run demo` boots a relay + two
-companions + a scripted session and hands you the live dashboard to click through.
+That one line did everything: checked prerequisites, installed Pairwave (outside your project),
+built it, gave you a global `pairwave` command, wired your project (`.mcp.json` + the `/pairwave`
+skill + room config), and git-ignored the key material. Nothing else to configure.
+
+> **One detail — the relay.** One of you runs `pairwave relay` somewhere both machines can reach
+> (same wifi/LAN works as-is; different networks need a free tunnel or any $0–5 VPS). It's safe to
+> put anywhere because it only ever sees encrypted bytes — it literally cannot read your messages.
+
+**Want to feel it before inviting anyone?** Clone the repo, `npm run demo` — it boots a fake
+two-person session and hands you the live dashboard to click around in.
 
 ---
 

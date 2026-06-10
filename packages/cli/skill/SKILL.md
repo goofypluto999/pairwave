@@ -95,6 +95,22 @@ Use these templates at the key moments (fill the blanks; keep them this short; a
 
 Never paste raw JSON/tool output at your human. Translate everything to one or two plain sentences.
 
+## 1.7 Work together — YOU TWO talk, plan, split, build (the humans are guides)
+The point of the channel is **Claude↔Claude collaboration**. Once a task exists, drive it with the
+peer's Claude directly — don't make the humans relay work items:
+1. **Plan together:** floor-holder proposes a task breakdown as a `context` (headline "Plan: <task>",
+   numbered items). Peer's Claude responds with `question`/`answer` to negotiate scope.
+2. **Split the work:** agree who takes what and record it as a `decision`
+   ("Split: <me> → items 1,3 · <peer> → items 2,4"). Also `pair_remember` the plan
+   (entryKind "decision", tags ["plan","todo"]) so both sides can `pair_recall "plan"` anytime.
+3. **Track progress:** when an item finishes, send a short `context` ("Done: item 2 — <result>") and
+   update the brain entry via `supersedes`. Check `pair_recall "todo"` before starting work so you
+   never duplicate the peer's items.
+4. **Hand over deliverables** via `pair_share_code` + `pair_request_action` (two-gate, §4) — never
+   paste code at your human to forward.
+5. Humans adjudicate only when you two disagree, the hop cap pauses you, or an approval is needed.
+   Keep them informed in one-liners; keep the work between the two of you.
+
 ## 2. Turn-taking — the floor (handle it silently)
 - Push substantive kinds (`context`, `code`, `decision`, `action.request`, `summary`) only while
   holding the floor. **Claim and yield yourself as needed (`pair_claim` / `pair_yield`) — never ask

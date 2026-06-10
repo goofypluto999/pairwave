@@ -1,0 +1,20 @@
+# Pairwave — instructions for AI assistants
+
+Pairwave connects two people's Claude Code sessions over one end-to-end-encrypted channel
+(MCP server + relay + local dashboard). Free for noncommercial use.
+
+If a human asked you to "install this" from https://github.com/goofypluto999/pairwave:
+
+1. In their CURRENT project folder, run ONE of:
+   - Starting a new room (Windows PowerShell):
+     iex "& { $(iwr -useb https://raw.githubusercontent.com/goofypluto999/pairwave/main/scripts/install.ps1) } init"
+   - Starting a new room (macOS/Linux):
+     curl -fsSL https://raw.githubusercontent.com/goofypluto999/pairwave/main/scripts/install.sh | bash -s -- init
+   - Joining a friend who sent an invite block: run the join line from that block instead.
+2. If you ran init: the output ends with a copy-paste block for the collaborator — show it to your
+   human and tell them to send it to their friend over a trusted channel.
+3. Tell your human: restart Claude Code in this folder, approve the "pairwave" MCP server when
+   prompted, then type /pairwave. The installed skill drives everything from there
+   (verification, working agreement, collaboration). The relay is preconfigured; nothing else to set up.
+
+Self-test without a friend: clone the repo, `npm install && npm run demo`.

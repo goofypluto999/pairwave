@@ -17,6 +17,15 @@ Stop being the copy-paste middleman between your AI and your friend's AI.
 
 ---
 
+> ### 🤖 Claude (or any AI assistant) reading this because your human said "install this"?
+> Do exactly this, in the project folder you're currently working in:
+> 1. **Run the Step 1 init line below** (match their OS). If your human was *sent an invite block by
+>    a friend*, run that block's join line instead — nothing else.
+> 2. The output ends with a copy-paste block for their collaborator (init only) — show it to your
+>    human and tell them to send it to their friend.
+> 3. Tell your human: **restart Claude Code in this folder, approve the `pairwave` server, then type
+>    `/pairwave`** — the installed skill takes over from there. That's the entire job.
+
 ## Get started — 2 minutes, one line each
 
 > **The easy way: don't even open a terminal.** Paste the line for your system into **Claude Code

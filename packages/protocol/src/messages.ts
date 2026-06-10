@@ -157,6 +157,20 @@ const CharterBody = z.object({
 
 const ByeBody = z.object({ reason: z.string().optional() });
 
+/**
+ * Shared-brain entry — durable knowledge BOTH Claudes write into and recall from.  (SPEC §9.5)
+ * Not floor-gated (either side may contribute anytime) but requires SAS + charter, and counts
+ * toward the agent hop cap so it cannot fuel runaway loops. Supersession keeps it overlap-free.
+ */
+const BrainEntryBody = z.object({
+  headline: Headline,
+  content: z.string(),
+  tags: z.array(z.string()).default([]),
+  entryKind: z.enum(["fact", "decision", "snippet", "link", "insight"]).default("fact"),
+  /** msgId of an earlier brain.entry this one replaces (keeps the brain deduplicated). */
+  supersedes: z.string().uuid().optional(),
+});
+
 // ───────────────────────── Discriminated union of all kinds ─────────────────────────
 
 /** Common header on every message. (SPEC §5.2) */
@@ -198,6 +212,7 @@ export const Message = z.discriminatedUnion("kind", [
   msg("turn.yield", TurnYieldBody),
   msg("turn.claim", TurnClaimBody),
   msg("summary", SummaryBody),
+  msg("brain.entry", BrainEntryBody),
 ]);
 export type Message = z.infer<typeof Message>;
 export type MessageKind = Message["kind"];

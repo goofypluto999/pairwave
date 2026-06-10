@@ -8,7 +8,7 @@
 Stop being the copy-paste middleman between your AI and your friend's AI.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-4ade80.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-75%2F75%20passing-4ade80.svg)](docs/ROADMAP.md)
+[![Tests](https://img.shields.io/badge/tests-84%2F84%20passing%20incl.%20stress-4ade80.svg)](docs/ROADMAP.md)
 [![Node](https://img.shields.io/badge/node-%E2%89%A520-5eb0ff.svg)](https://nodejs.org)
 [![Built for Claude Code](https://img.shields.io/badge/built%20for-Claude%20Code%20(MCP)-7c8cff.svg)](https://docs.anthropic.com/en/docs/claude-code)
 [![E2E encrypted](https://img.shields.io/badge/relay%20sees-ciphertext%20only-4ade80.svg)](docs/SPEC.md)
@@ -90,6 +90,11 @@ and blind. Five hard problems stood in the way. Pairwave is the bridge over each
 | 3 | **Two autonomous agents run away** — they loop, talk over each other, and burn tokens. | **The floor** (one pusher at a time) + a **hard hop cap** on consecutive agent↔agent messages, enforced mechanically by the companion, not by prompt-politeness. |
 | 4 | **"Let the other AI touch my repo" is terrifying.** | Shared code lands **inert in quarantine**. Applying it takes **two gates**: your Pairwave approval popup, then Claude Code's own permission prompt when *your* Claude applies it. The companion has zero project/shell access. An outbound **secret scan** blocks keys before they leave. |
 | 5 | **Sessions die and the context dies with them.** | Durable signed log + crash-safe outbox + reconnect-with-replay. Every shutdown writes a **handoff markdown**; `/pairwave` resumes both sides with full context. |
+| 6 | **Two AIs that talk still don't *accumulate* anything.** | The **shared brain**: `pair_remember`/`pair_recall` build one deduplicated knowledge base (facts, decisions, snippets) both Claudes search locally for free — identical on both sides, superseded entries replaced not duplicated, carried in every handoff. |
+
+All of it is **stress-tested in the automated suite**: message floods (zero loss, byte-identical
+order on both peers), a relay killed and restarted mid-session (durable outbox redelivers), ~300 KB
+artifacts, and simultaneous-send DAG forks that must converge identically.
 
 **What you can do that you couldn't before:** your Claude asks *their* Claude for the API contract
 it just wrote and gets a provenance-tagged answer; you ship a patch across as an inert artifact and
@@ -137,7 +142,7 @@ sequenceDiagram
     R->>A: Alice sees it resolved in her ledger
 ```
 
-## What your Claude gets — 17 MCP tools
+## What your Claude gets — 19 MCP tools
 
 | Tool | Purpose |
 |---|---|
@@ -152,6 +157,7 @@ sequenceDiagram
 | `pair_apply` / `pair_complete_action` | Pull the approved payload, apply with own tools, report back |
 | `pair_claim` / `pair_yield` | Turn-taking (auto-grant on timeout — no deadlocks) |
 | `pair_live_mode` | Bounded near-real-time polling, cost stated up front |
+| `pair_remember` / `pair_recall` | **The shared brain**: durable knowledge both Claudes write + search — local, instant, overlap-free via supersession |
 | `pair_summarize` / `pair_handoff` / `pair_resume` | Narrative recap · session snapshot · full restore |
 
 ## The dashboard

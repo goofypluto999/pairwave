@@ -14,6 +14,7 @@ import {
   seal,
   open,
   toB64,
+  Message as MessageSchema,
   FloorPolicy as FloorPolicySchema,
   type Message,
   type RelayEnvelope,
@@ -133,7 +134,7 @@ export class CompanionCore {
 
     const view = deriveFloor(this.log, this.policy, nowIso);
     const pubKey = (this.pubB64 ??= await toB64(this.cfg.identity.publicKey));
-    const core = {
+    const draft = {
       v: 1,
       msgId: this.idgen(),
       roomId: this.cfg.roomId,
@@ -144,7 +145,19 @@ export class CompanionCore {
       turn: { floor: view.floor, turnId: view.turnId, hop: view.hop },
       kind,
       body,
+      // Placeholders so the schema can validate the full shape; replaced by buildMessage below.
+      hash: "AA==",
+      sig: "AA==",
     };
+    // Normalize through the schema BEFORE hashing: schema defaults (e.g. provenance: []) are
+    // filled in NOW, so the hashed core, the wire bytes, and what BOTH peers store are the
+    // identical canonical form. (The stress suite caught sender/receiver logs diverging on
+    // defaults — and a re-verify of receiver-stored messages would have failed otherwise.)
+    const parsed = MessageSchema.safeParse(draft);
+    if (!parsed.success) {
+      return { ok: false, code: "invalid_body", reason: parsed.error.issues[0]?.message ?? "invalid message body" };
+    }
+    const { hash: _h, sig: _s, ...core } = parsed.data;
     const message = await buildMessage(core as unknown as Parameters<typeof buildMessage>[0], this.cfg.identity.secretKey);
     this.appendVerified(message);
     const sealed = await seal(message, this.cfg.sessionKey);

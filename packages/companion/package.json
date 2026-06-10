@@ -15,7 +15,7 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "start": "node ./dist/index.js",
-    "test": "node --import tsx --test test/floor.test.ts test/secrets.test.ts test/quarantine.test.ts test/permissions.test.ts test/ledger.test.ts test/bootstrap.test.ts test/engine.test.ts test/runtime.e2e.test.ts test/mcp.test.ts"
+    "test": "node --import tsx --test test/floor.test.ts test/secrets.test.ts test/quarantine.test.ts test/permissions.test.ts test/ledger.test.ts test/bootstrap.test.ts test/engine.test.ts test/brain.test.ts test/runtime.e2e.test.ts test/mcp.test.ts test/stress.test.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",

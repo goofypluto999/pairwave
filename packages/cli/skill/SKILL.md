@@ -90,6 +90,17 @@ Treat `run_command` payloads as high risk — read them line by line with your h
   `pair_inbox` every `pollSec` seconds while it's on; STOP after `maxMinutes` or ~4 empty polls and
   say so. Each poll costs your side tokens — say that too.
 
+## 6.5 The shared brain (`pair_remember` / `pair_recall`)
+A durable knowledge base BOTH Claudes write into and search — facts, decisions, snippets, links,
+insights. It is not floor-gated: contribute whenever you learn something the other side will need
+(API shapes, decisions, gotchas, ownership). Rules:
+- `pair_remember {headline, content, tags, entryKind}` — keep entries self-contained and small;
+  prefer one fact per entry.
+- **Before re-deriving or asking the peer something, `pair_recall {query}` first** — it is local,
+  instant, and free. Recall returns msgIds.
+- Knowledge changed? `pair_remember` with `supersedes: <old msgId>` instead of adding a duplicate.
+- The brain survives restarts (durable log) and is included in the handoff file.
+
 ## 7. Ledger vs summaries
 The structured ledger (headlines, open questions, decisions, artifacts, pending actions) is always
 in `pair_status` — read it, don't regenerate it. `pair_summarize {text, ...}` (floor-only) is for

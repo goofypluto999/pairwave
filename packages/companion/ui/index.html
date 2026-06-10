@@ -143,6 +143,8 @@
       <div id="questions"><div class="empty">None yet.</div></div>
       <h3>Decisions</h3>
       <div id="decisions"><div class="empty">None yet.</div></div>
+      <h3>Shared brain <span id="brain-count" style="color:var(--accent)"></span></h3>
+      <div id="brain"><div class="empty">Nothing remembered yet — your Claudes build this together.</div></div>
       <h3>Shared code (inert until approved)</h3>
       <div id="artifacts"><div class="empty">None yet.</div></div>
       <h3>Awaiting the other side</h3>
@@ -257,6 +259,9 @@
     const led = state.ledger || {};
     renderList($("questions"), led.openQuestions || [], (q) => `<div class="item">${esc(q.text)}<div class="meta">${esc(q.peerId)} · ${hhmm(q.ts)}</div></div>`, "None yet.");
     renderList($("decisions"), led.decisions || [], (d) => `<div class="item"><b>${esc(d.headline)}</b><div class="meta">${esc(d.decision)}</div></div>`, "None yet.");
+    const br = state.brain || { total: 0, recent: [] };
+    $("brain-count").textContent = br.total ? `(${br.total})` : "";
+    renderList($("brain"), (br.recent || []).slice().reverse(), (e) => `<div class="item">${esc(e.headline)}<div class="meta">${esc(e.entryKind)} · ${esc(e.peerId)} · ${hhmm(e.ts)}</div></div>`, "Nothing remembered yet — your Claudes build this together.");
     renderList($("artifacts"), led.sharedArtifacts || [], (a) => `<div class="item">${esc(a.headline)}<div class="meta">${esc(a.language)}${a.isPatch ? " patch" : ""} · from ${esc(a.peerId)}</div></div>`, "None yet.");
     renderList($("pending-out"), (led.pendingActions || []).filter((p) => p.peerId === myPeerId), (p) => `<div class="item">${esc(p.summary)}<div class="meta">sent ${hhmm(p.ts)} — peer has not acted yet</div></div>`, "Nothing pending.");
     renderList($("headlines"), (led.headlines || []).slice().reverse(), (h) => `<div class="item">${esc(h.headline)}<div class="meta">${esc(h.kind)} · ${esc(h.peerId)} · ${hhmm(h.ts)}</div></div>`, "None yet.");

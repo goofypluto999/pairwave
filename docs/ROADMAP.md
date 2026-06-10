@@ -87,6 +87,19 @@ Legend: ☐ todo · ◐ partial · ☑ done
 - ☑ **Verified:** e2e test boots a fresh runtime over the same dir — charter, ledger, SAS state all
   restored from the durable log; demo + UI exercise the button
 
+## v2 — Shared brain + stress hardening  ☑ (2026-06-10)
+- ☑ **Shared brain** (`brain.ts`, `brain.entry` kind, `pair_remember`/`pair_recall` → 19 tools):
+  pure fold of the signed log (identical on both peers), supersession keeps it overlap-free,
+  deterministic local keyword recall (headline>tags>content), dashboard rail section, handoff
+  section. Requires SAS+charter; NOT floor-gated; hop-counted. 4 unit tests + cross-wire e2e.
+- ☑ **Stress suite** (`stress.test.ts`, real sockets + crypto): 60-message dual-side flood with
+  byte-identical ordering and zero drops; relay kill + restart mid-session (durable outbox
+  redelivers); ~300 KB artifact integrity; simultaneous-send DAG fork convergence; brain
+  sync + supersede across the wire. **84/84 tests monorepo-wide.**
+- ☑ Bugs the stress suite caught & fixed at the root: `read()` corrupted by clipping serialized
+  JSON (now clips per-field); sender/receiver logs diverging on schema defaults (messages now
+  normalized through the schema BEFORE hashing — wire, logs, and hashes share one canonical form).
+
 ## Phase 7 — Hardening & release  ◐
 - ☑ Security disclosure note (README); honest threat model (SPEC §15); MIT license
 - ☐ npm publish; reference relay deploy guide beyond README's VPS/tunnel note

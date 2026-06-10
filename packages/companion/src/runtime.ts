@@ -37,6 +37,7 @@ import { loadConfig, loadOrCreateIdentity, RoomStore, type RoomConfig, type Room
 import { PermissionQueue, normalizeRisk, gate1Decision, type ApplyTask, type PendingPermission } from "./permissions.js";
 import { quarantineCode, readQuarantined, type QuarantinedArtifact } from "./quarantine.js";
 import { deriveLedger, type ActivityLedger } from "./ledger.js";
+import { deriveBrain, recallBrain, type BrainView, type RecallHit, type BrainEntry } from "./brain.js";
 import { writeHandoff, readLatestHandoff } from "./handoff.js";
 
 export type RuntimeStatus = {
@@ -48,6 +49,7 @@ export type RuntimeStatus = {
   charter: { agreed: boolean; hash?: string | undefined; title?: string | undefined; autoApprove?: string | undefined };
   floor: { holder: string | "none"; turnId: string; hop: number; pendingClaim?: string | undefined };
   ledger: ActivityLedger;
+  brain: { total: number; recent: { headline: string; peerId: string; ts: string; entryKind: string }[] };
   pendingPermissions: PendingPermission[];
   approvedTasks: { permissionId: string; requestMsgId: string; action: string; targetPath?: string | undefined }[];
   liveMode: { on: boolean; pollSec: number; maxMinutes: number };
@@ -66,6 +68,16 @@ const MAX_TOOL_TEXT = 4000;
 
 function clip(s: string): string {
   return s.length > MAX_TOOL_TEXT ? s.slice(0, MAX_TOOL_TEXT) + `\n…[clipped ${s.length - MAX_TOOL_TEXT} chars]` : s;
+}
+
+/** Recursively clip long string fields so tool output stays bounded without corrupting structure. */
+function clipValue(v: unknown): unknown {
+  if (typeof v === "string") return clip(v);
+  if (Array.isArray(v)) return v.map(clipValue);
+  if (v && typeof v === "object") {
+    return Object.fromEntries(Object.entries(v as Record<string, unknown>).map(([k, x]) => [k, clipValue(x)]));
+  }
+  return v;
 }
 
 export class CompanionRuntime {
@@ -414,8 +426,40 @@ export class CompanionRuntime {
     return deriveLedger(this.core.messages());
   }
 
+  // ───────────────────────── shared brain (SPEC §9.5) ─────────────────────────
+
+  brain(): BrainView {
+    return deriveBrain(this.core.messages());
+  }
+
+  recall(query: string, opts?: { tags?: string[]; limit?: number; kind?: BrainEntry["entryKind"] }): RecallHit[] {
+    return recallBrain(this.brain(), query, opts);
+  }
+
+  async remember(entry: {
+    headline: string;
+    content: string;
+    tags?: string[];
+    entryKind?: BrainEntry["entryKind"];
+    supersedes?: string;
+    origin?: "human" | "agent";
+  }): Promise<SendResult> {
+    return this.send(
+      "brain.entry",
+      {
+        headline: entry.headline.slice(0, 80),
+        content: entry.content,
+        tags: entry.tags ?? [],
+        entryKind: entry.entryKind ?? "fact",
+        ...(entry.supersedes !== undefined ? { supersedes: entry.supersedes } : {}),
+      },
+      entry.origin ?? "agent",
+    );
+  }
+
   async status(): Promise<RuntimeStatus> {
     const ledger = this.ledger();
+    const brainView = this.brain();
     const floor = this.core.floor();
     const charter = this.agreedCharter();
     const liveModePolicy = LiveModePolicySchema.parse(charter?.liveModePolicy ?? {});
@@ -432,6 +476,15 @@ export class CompanionRuntime {
       charter: { agreed: !!charter, hash: charter?.charterHash, title: charter?.title, autoApprove: charter?.autoApprove },
       floor: { holder: floor.floor, turnId: floor.turnId, hop: floor.hop, pendingClaim: floor.pendingClaim },
       ledger,
+      brain: {
+        total: brainView.counts.total,
+        recent: brainView.entries.slice(-5).map((e) => ({
+          headline: e.headline,
+          peerId: e.peerId,
+          ts: e.ts,
+          entryKind: e.entryKind,
+        })),
+      },
       pendingPermissions: this.queue.pending(),
       approvedTasks: [...this.approvedTasks.entries()].map(([permissionId, e]) => ({
         permissionId,
@@ -468,7 +521,9 @@ export class CompanionRuntime {
         from: `${m.sender.name} (${m.sender.peerId})`,
         origin: m.origin,
         kind: m.kind,
-        body: JSON.parse(clip(JSON.stringify(m.body))),
+        // Clip long STRINGS field-by-field — never truncate serialized JSON and re-parse it
+        // (the stress suite proved a large artifact would corrupt the parse and break read()).
+        body: clipValue(m.body),
       }));
   }
 
@@ -493,6 +548,7 @@ export class CompanionRuntime {
       me: { peerId: this.cfg.peerId, name: this.cfg.name },
       charter: this.agreedCharter(),
       ledger: this.ledger(),
+      brain: this.brain(),
       messages: this.core.messages(),
       sasVerified: this.state.sasVerified,
       nowIso: new Date().toISOString(),

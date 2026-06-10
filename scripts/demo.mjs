@@ -96,6 +96,22 @@ if (code.ok) {
   );
   if (!req.ok) console.error("demo: action.request blocked:", req.code, req.reason);
 }
+// The shared brain: either side contributes anytime (not floor-gated) — note Bob writes too.
+await alice.remember({
+  headline: "Prefs API lives at /api/prefs",
+  content: "GET/PUT /api/prefs — flat JSON, keys validated server-side.",
+  tags: ["api", "prefs"],
+  entryKind: "fact",
+  origin: "human",
+});
+await wait(200);
+await bob.remember({
+  headline: "Bob owns the settings toggle UI",
+  content: "The settings-page toggle component is Bob's; Alice owns the prefs API.",
+  tags: ["ownership"],
+  entryKind: "insight",
+  origin: "human",
+});
 await alice.send("question", { text: "Do you want pageSize in the first cut, or theme only?" }, "human");
 await wait(500);
 

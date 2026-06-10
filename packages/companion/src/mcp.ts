@@ -197,6 +197,35 @@ export const TOOLS: ToolDef[] = [
     ),
   },
   {
+    name: "pair_remember",
+    description:
+      "Save knowledge into the SHARED BRAIN both Claudes recall from — facts, decisions, snippets, " +
+      "links, insights. Not floor-gated (either side may contribute anytime). Use supersedes to " +
+      "replace an outdated entry instead of duplicating. Requires SAS + charter.",
+    inputSchema: obj(
+      {
+        headline: str("<=80-char title for the entry"),
+        content: str("The knowledge itself — keep it self-contained"),
+        tags: arr("Lowercase tags for filtering, e.g. ['api','auth']"),
+        entryKind: { type: "string", enum: ["fact", "decision", "snippet", "link", "insight"], description: "What kind of knowledge (default fact)" },
+        supersedes: str("msgId of an earlier brain entry this replaces"),
+      },
+      ["headline", "content"],
+    ),
+  },
+  {
+    name: "pair_recall",
+    description:
+      "Search the shared brain (local, instant, free — no network, no tokens beyond this call). " +
+      "Returns ranked entries with msgIds (usable as supersedes targets). Empty query lists recent entries.",
+    inputSchema: obj({
+      query: str("Keywords to search for"),
+      tags: arr("Restrict to entries carrying any of these tags"),
+      kind: { type: "string", enum: ["fact", "decision", "snippet", "link", "insight"], description: "Restrict to one entry kind" },
+      limit: num("Max results (default 8)"),
+    }),
+  },
+  {
     name: "pair_handoff",
     description: "Write the per-side handoff markdown now (also happens automatically on shutdown).",
     inputSchema: obj({}),
@@ -342,6 +371,22 @@ export async function callPairTool(rt: CompanionRuntime, name: string, args: Jso
         },
         "agent",
       );
+
+    case "pair_remember":
+      return rt.remember({
+        headline: String(args.headline ?? ""),
+        content: String(args.content ?? ""),
+        tags: (args.tags as string[]) ?? [],
+        ...(args.entryKind !== undefined ? { entryKind: args.entryKind as never } : {}),
+        ...(args.supersedes !== undefined ? { supersedes: String(args.supersedes) } : {}),
+      });
+
+    case "pair_recall":
+      return rt.recall(String(args.query ?? ""), {
+        ...(args.tags !== undefined ? { tags: args.tags as string[] } : {}),
+        ...(args.kind !== undefined ? { kind: args.kind as never } : {}),
+        ...(typeof args.limit === "number" ? { limit: args.limit } : {}),
+      });
 
     case "pair_handoff":
       return { path: rt.writeHandoffNow() };

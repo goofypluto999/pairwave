@@ -11,12 +11,14 @@ import { writeFileSync, readFileSync, existsSync, copyFileSync } from "node:fs";
 import { join } from "node:path";
 import { topoOrder, type Message, type Charter } from "@pairwave/protocol";
 import type { ActivityLedger } from "./ledger.js";
+import type { BrainView } from "./brain.js";
 
 export type HandoffInput = {
   roomId: string;
   me: { peerId: string; name: string };
   charter?: Charter | undefined;
   ledger: ActivityLedger;
+  brain?: BrainView | undefined;
   messages: Message[];
   sasVerified: boolean;
   nowIso: string;
@@ -80,6 +82,17 @@ export function buildHandoffMarkdown(input: HandoffInput): string {
   }
   if (!ledger.sharedArtifacts.length) lines.push(`_None._`);
   lines.push("");
+
+  if (input.brain && input.brain.counts.total > 0) {
+    lines.push(`## Shared brain (${input.brain.counts.total} entries)`);
+    for (const e of input.brain.entries) {
+      lines.push(
+        `- [${e.entryKind}] **${e.headline}** (${e.author}, ${e.ts})${e.tags.length ? ` · tags: ${e.tags.join(", ")}` : ""}`,
+      );
+      lines.push(`  ${e.content.replace(/\r?\n/g, " ").slice(0, 200)}`);
+    }
+    lines.push("");
+  }
 
   lines.push(`## Unresolved action requests (${ledger.pendingActions.length})`);
   for (const p of ledger.pendingActions) lines.push(`- (${p.peerId}, ${p.ts}) [${p.risk}] ${p.action}: ${p.summary}`);

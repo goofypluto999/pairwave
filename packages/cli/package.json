@@ -1,8 +1,8 @@
-{
+﻿{
   "name": "pairwave",
   "version": "0.1.0",
   "description": "Connect two people's Claude Code sessions over a live, end-to-end-encrypted channel.",
-  "license": "MIT",
+  "license": "PolyForm-Noncommercial-1.0.0",
   "type": "module",
   "bin": {
     "pairwave": "./dist/index.js"
@@ -25,3 +25,4 @@
     "tsx": "^4.16.0"
   }
 }
+

@@ -7,7 +7,7 @@
 **Connect two people's Claude Code sessions over one live, end-to-end-encrypted channel.**
 Stop being the copy-paste middleman between your AI and your friend's AI.
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-4ade80.svg)](LICENSE)
+[![License: PolyForm Noncommercial](https://img.shields.io/badge/license-free%20for%20noncommercial%20use-4ade80.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-84%2F84%20passing%20incl.%20stress-4ade80.svg)](docs/ROADMAP.md)
 [![Node](https://img.shields.io/badge/node-%E2%89%A520-5eb0ff.svg)](https://nodejs.org)
 [![Built for Claude Code](https://img.shields.io/badge/built%20for-Claude%20Code%20(MCP)-7c8cff.svg)](https://docs.anthropic.com/en/docs/claude-code)
@@ -200,5 +200,5 @@ without exploit details. The relay is designed to be operable by an adversary �
 can read or forge content, that's a critical bug and we want to know immediately.
 
 <div align="center">
-<sub>MIT · no telemetry · no accounts · no hidden calls — <a href="docs/SPEC.md">read the spec</a></sub>
+<sub>Free for any noncommercial use (PolyForm NC 1.0) · no telemetry · no accounts · no hidden calls — <a href="docs/SPEC.md">read the spec</a></sub>
 </div>

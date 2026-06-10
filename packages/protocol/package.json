@@ -1,8 +1,8 @@
-{
+﻿{
   "name": "@pairwave/protocol",
   "version": "0.0.0",
   "description": "Pairwave wire protocol + crypto core: envelopes, messages, turn-taking, E2E seal/open, SAS, hash-DAG.",
-  "license": "MIT",
+  "license": "PolyForm-Noncommercial-1.0.0",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -27,3 +27,4 @@
     "tsx": "^4.16.0"
   }
 }
+

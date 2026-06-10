@@ -1,6 +1,6 @@
 # Pairwave — Specification
 
-**Version:** draft 0.2 · **Status:** for review · **License:** MIT
+**Version:** draft 0.2 · **Status:** for review · **License:** PolyForm Noncommercial 1.0.0
 
 This document is the source of truth for the design. The hard part of this project is not the
 plumbing — it is the **execution model and protocol discipline**: how an inherently turn-based agent
@@ -52,7 +52,7 @@ implements this spec; where they disagree, the spec wins until updated.
   (task, purpose, rules, MUST-NOTs) loaded by both Claudes before any exchange.
 - **G6 — Trackable.** A signed, hash-linked transcript and a live structured ledger.
 - **G7 — Resumable.** Disconnect produces a per-side handoff file; reconnect restores full context.
-- **G8 — Transparent.** MIT, no telemetry, no hidden calls, documented limits, no surprise spend.
+- **G8 — Transparent.** Free for noncommercial use (PolyForm NC 1.0), no telemetry, no hidden calls, documented limits, no surprise spend.
 
 ### 1.2 Non-goals (v1)
 - **Not always-on autonomy.** v1 is **async/turn-based** (§4). Real-time is an opt-in, bounded mode.

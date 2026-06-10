@@ -1,9 +1,9 @@
-{
+﻿{
   "name": "pairwave-monorepo",
   "private": true,
   "version": "0.1.0",
   "description": "A live, end-to-end-encrypted bridge between two people's Claude Code sessions.",
-  "license": "MIT",
+  "license": "PolyForm-Noncommercial-1.0.0",
   "type": "module",
   "workspaces": [
     "packages/protocol",
@@ -26,3 +26,4 @@
     "typescript": "^5.5.0"
   }
 }
+

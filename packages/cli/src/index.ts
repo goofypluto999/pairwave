@@ -69,6 +69,8 @@ async function main(): Promise<void> {
 
   switch (cmd) {
     case "init": {
+      // Default: the always-on community relay. It sees only ciphertext (E2E by design), so a
+      // shared host costs users nothing in privacy of CONTENT. Self-hosters: --relay <ws-url>.
       const relayUrl = flag("relay") ?? "ws://127.0.0.1:8787";
       const invite = newInvite(relayUrl);
       const name = flag("name") ?? defaultName();
@@ -76,9 +78,9 @@ async function main(): Promise<void> {
       out(`Pairwave room created: ${invite.roomId}  (relay: ${relayUrl}, you: ${name})`);
       if (/^wss?:\/\/(127\.0\.0\.1|localhost)/i.test(relayUrl)) {
         out("");
-        out("  NOTE: this relay address only works on YOUR machine (or your LAN via your IP).");
-        out("  Friend on a different network? Get a free hosted relay in 2 clicks (Deploy to");
-        out("  Render button in the README), then re-run init with:  --relay wss://<your-relay>");
+        out("  NOTE: a localhost relay only works on YOUR machine (or LAN via your IP).");
+        out("  For a friend on another network, omit --relay to use the community relay,");
+        out("  or self-host (pairwave relay / the Deploy to Render button in the README).");
       }
       printNextSteps(projectDir, encodeInvite(invite));
       return;

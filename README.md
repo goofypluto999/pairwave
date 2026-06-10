@@ -68,15 +68,13 @@ That one line did everything: checked prerequisites, installed Pairwave (outside
 built it, gave you a global `pairwave` command, wired your project (`.mcp.json` + the `/pairwave`
 skill + room config), and git-ignored the key material. Nothing else to configure.
 
-> **One detail — the relay** (the dumb pipe between you; it only ever sees encrypted bytes):
-> - **Same machine or same wifi:** Person A runs `pairwave relay` — it prints the exact address to
->   use. Done.
-> - **Different networks (you + a remote friend):** click once →
->   [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/goofypluto999/pairwave)
->   — free, ~2 minutes, gives you a `wss://…onrender.com` address. Person A then inits with
->   `--relay wss://<that-address>` added to the one-liner (before the closing quote). Safe to host
->   anywhere: the relay cannot read your messages, by design. (Free tier sleeps when idle — first
->   reconnect takes ~30s, then instant.)
+> **The relay (the dumb pipe between you): zero setup.** New rooms use the always-on **community
+> relay** by default — it works across any networks, requires no account, and **cannot read your
+> messages**: it stores and forwards encrypted bytes only (that's the architecture, not a policy).
+> Prefer your own pipe? Both options stay one step away: run `pairwave relay` (it prints the exact
+> address to share) or click
+> [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/goofypluto999/pairwave)
+> for your own free hosted relay, then add `--relay wss://<your-relay>` to the init line.
 
 **Want to feel it before inviting anyone?** Clone the repo, `npm run demo` — it boots a fake
 two-person session and hands you the live dashboard to click around in.

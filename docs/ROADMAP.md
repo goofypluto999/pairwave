@@ -100,6 +100,21 @@ Legend: ☐ todo · ◐ partial · ☑ done
   JSON (now clips per-field); sender/receiver logs diverging on schema defaults (messages now
   normalized through the schema BEFORE hashing — wire, logs, and hashes share one canonical form).
 
+## v2.1 — Flow & polish release  ☑ (2026-06-10, tag v0.2.0)
+- ☑ **Autopilot skill**: prime directive — Claude drives the entire protocol; the human answers ONE
+  SAS question (+ optional charter consent). Auto-drafts the charter, manages the floor silently,
+  offers "go live" for hands-free back-and-forth (hop caps + auto-stop keep the breaks).
+- ☑ **Dashboard redesign**: calmer dark UI, approval cards, human origin tags, brain rail, served
+  fresh-from-disk per request (UI updates land on browser refresh).
+- ☑ **Ready-to-send invites**: init prints the complete join one-liner with the code embedded —
+  Person B pastes one line, nothing to assemble.
+- ☑ **Relay reachability solved**: `pairwave relay` prints every usable address; init warns when the
+  relay is localhost-only; **Deploy-to-Render button** (`render.yaml`) = free hosted relay for
+  different-network pairs (safe on untrusted hosts by design; free tier sleeps, ~30s first wake).
+- ☑ Verified on a real machine end-to-end: live one-liner install from GitHub, two wired projects,
+  desktop-app Claude Code sessions loading the MCP tools, SAS match across seats, chat across the
+  encrypted wire, dashboards live.
+
 ## Phase 7 — Hardening & release  ◐
 - ☑ Security disclosure note (README); honest threat model (SPEC §15); MIT license
 - ☐ npm publish; reference relay deploy guide beyond README's VPS/tunnel note

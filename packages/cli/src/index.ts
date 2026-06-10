@@ -39,18 +39,32 @@ function printNextSteps(projectDir: string, invite?: string): void {
   out("    .claude/skills/pairwave/     the /pairwave skill");
   out("");
   if (invite) {
-    out("  ================== SEND ONE OF THESE TO YOUR FRIEND ==================");
+    out("  ============ COPY THE WHOLE BLOCK BELOW AND SEND IT TO YOUR FRIEND ============");
     out("  (over a TRUSTED channel — Signal/WhatsApp/in person; it contains the room key)");
-    out("  They paste it in their project folder — or into their Claude Code with 'run this'.");
     out("");
-    out("  If they're on WINDOWS:");
+    out("  ---8<------------------------------------------------------------------------");
+    out("  Let's pair our Claudes. Two steps, ~2 minutes:");
+    out("");
+    out("  STEP 1 — in your project folder, paste this into your terminal (or paste it");
+    out("  into Claude Code and say \"run this\"):");
+    out("");
+    out("  Windows:");
     out(`    iex "& { $(iwr -useb https://raw.githubusercontent.com/goofypluto999/pairwave/main/scripts/install.ps1) } join ${invite}"`);
     out("");
-    out("  If they're on MAC or LINUX:");
+    out("  Mac / Linux:");
     out(`    curl -fsSL https://raw.githubusercontent.com/goofypluto999/pairwave/main/scripts/install.sh | bash -s -- join "${invite}"`);
-    out("  =======================================================================");
     out("");
-    out(`  (Already installed? They can just run: pairwave join ${invite} )`);
+    out("  STEP 2 — when it finishes: open Claude Code in that same folder and type");
+    out("");
+    out("      /pairwave");
+    out("");
+    out("  Your Claude takes it from there (it'll ask you to confirm six safety words");
+    out("  with me, then we're connected — you get a live dashboard too).");
+    out("  ---8<------------------------------------------------------------------------");
+    out("");
+    out(`  (Friend already has Pairwave? They can just run: pairwave join ${invite} )`);
+    out("");
+    out("  YOUR next step: open Claude Code in THIS folder and type  /pairwave");
     out("");
   }
   out("  Then on each side:");

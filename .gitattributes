@@ -1,0 +1,6 @@
+# Normalize text; force LF where CRLF would break execution
+* text=auto
+*.sh text eol=lf
+*.mjs text eol=lf
+*.ps1 text eol=crlf
+*.svg text eol=lf

@@ -39,13 +39,18 @@ function printNextSteps(projectDir: string, invite?: string): void {
   out("    .claude/skills/pairwave/     the /pairwave skill");
   out("");
   if (invite) {
-    out("  INVITE CODE for your friend (share over a TRUSTED channel — it IS the room key):");
+    out("  ================== SEND ONE OF THESE TO YOUR FRIEND ==================");
+    out("  (over a TRUSTED channel — Signal/WhatsApp/in person; it contains the room key)");
+    out("  They paste it in their project folder — or into their Claude Code with 'run this'.");
     out("");
-    out(`    ${invite}`);
+    out("  If they're on WINDOWS:");
+    out(`    iex "& { $(iwr -useb https://raw.githubusercontent.com/goofypluto999/pairwave/main/scripts/install.ps1) } join ${invite}"`);
     out("");
-    out("  They run, inside THEIR project folder (Windows | macOS/Linux):");
-    out(`    iex "& { $(iwr -useb https://raw.githubusercontent.com/goofypluto999/pairwave/main/scripts/install.ps1) } join <that code>"`);
-    out(`    curl -fsSL https://raw.githubusercontent.com/goofypluto999/pairwave/main/scripts/install.sh | bash -s -- join "<that code>"`);
+    out("  If they're on MAC or LINUX:");
+    out(`    curl -fsSL https://raw.githubusercontent.com/goofypluto999/pairwave/main/scripts/install.sh | bash -s -- join "${invite}"`);
+    out("  =======================================================================");
+    out("");
+    out(`  (Already installed? They can just run: pairwave join ${invite} )`);
     out("");
   }
   out("  Then on each side:");

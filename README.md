@@ -35,20 +35,27 @@ iex "& { $(iwr -useb https://raw.githubusercontent.com/goofypluto999/pairwave/ma
 curl -fsSL https://raw.githubusercontent.com/goofypluto999/pairwave/main/scripts/install.sh | bash -s -- init
 ```
 
-It prints an **INVITE CODE**. Send it to your friend somewhere private (Signal, WhatsApp, in person)
-— that code *is* the room key.
+When it finishes, it prints a **ready-to-send line for your friend — invite code already inside**.
+You copy it, send it somewhere private (Signal, WhatsApp, in person — it *is* the room key), done.
 
-### Step 2 — Person B joins *(run inside their project folder, pasting the invite code in)*
+### Step 2 — Person B pastes the line you sent them
+
+That's it — the line Person A sends already contains everything. Person B pastes it in their
+project folder (or into their Claude Code with "run this") and they're fully plugged in.
+
+<details>
+<summary>Joining manually instead? (optional — only if you didn't get a ready-made line)</summary>
 
 **🪟 Windows (PowerShell):**
 ```powershell
-iex "& { $(iwr -useb https://raw.githubusercontent.com/goofypluto999/pairwave/main/scripts/install.ps1) } join <paste-invite-code-here>"
+iex "& { $(iwr -useb https://raw.githubusercontent.com/goofypluto999/pairwave/main/scripts/install.ps1) } join <invite-code>"
 ```
 
 **🍎 Mac / 🐧 Linux:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/goofypluto999/pairwave/main/scripts/install.sh | bash -s -- join "<paste-invite-code-here>"
+curl -fsSL https://raw.githubusercontent.com/goofypluto999/pairwave/main/scripts/install.sh | bash -s -- join "<invite-code>"
 ```
+</details>
 
 ### Step 3 — both of you
 

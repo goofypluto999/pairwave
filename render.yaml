@@ -1,0 +1,12 @@
+# One-click free hosted relay (Render.com).
+# The relay only ever sees ciphertext — hosting it on a third party is safe BY DESIGN.
+# Free plan note: the service sleeps when idle; the first reconnect after sleep takes ~30-60s,
+# then it's instant. Companions auto-reconnect, so this is invisible beyond that first wake.
+services:
+  - type: web
+    name: pairwave-relay
+    runtime: node
+    plan: free
+    buildCommand: npm install --no-audit --no-fund && npm run build
+    startCommand: node packages/relay/dist/index.js
+    healthCheckPath: /healthz

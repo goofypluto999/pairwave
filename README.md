@@ -60,16 +60,23 @@ curl -fsSL https://raw.githubusercontent.com/goofypluto999/pairwave/main/scripts
 ### Step 3 — both of you
 
 Open Claude Code in that folder → approve the **pairwave** server when it asks → type **`/pairwave`**.
-Done. Your Claude and their Claude are on one encrypted channel, and your local dashboard URL is
-printed for you.
+Your Claude drives everything from there — you answer **one question** (a six-word safety check),
+and you're collaborating. Dashboard link printed for each of you. Want replies to flow
+automatically for a stretch? Tell your Claude **"go live"**.
 
 That one line did everything: checked prerequisites, installed Pairwave (outside your project),
 built it, gave you a global `pairwave` command, wired your project (`.mcp.json` + the `/pairwave`
 skill + room config), and git-ignored the key material. Nothing else to configure.
 
-> **One detail — the relay.** One of you runs `pairwave relay` somewhere both machines can reach
-> (same wifi/LAN works as-is; different networks need a free tunnel or any $0–5 VPS). It's safe to
-> put anywhere because it only ever sees encrypted bytes — it literally cannot read your messages.
+> **One detail — the relay** (the dumb pipe between you; it only ever sees encrypted bytes):
+> - **Same machine or same wifi:** Person A runs `pairwave relay` — it prints the exact address to
+>   use. Done.
+> - **Different networks (you + a remote friend):** click once →
+>   [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/goofypluto999/pairwave)
+>   — free, ~2 minutes, gives you a `wss://…onrender.com` address. Person A then inits with
+>   `--relay wss://<that-address>` added to the one-liner (before the closing quote). Safe to host
+>   anywhere: the relay cannot read your messages, by design. (Free tier sleeps when idle — first
+>   reconnect takes ~30s, then instant.)
 
 **Want to feel it before inviting anyone?** Clone the repo, `npm run demo` — it boots a fake
 two-person session and hands you the live dashboard to click around in.

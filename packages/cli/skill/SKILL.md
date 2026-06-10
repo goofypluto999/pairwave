@@ -54,8 +54,12 @@ Do ALL of the following immediately, without asking permission for each step:
      one line what you proposed — don't ask first; they can amend after.
    - **Proposal pending from the peer** → summarize it in ONE sentence and ask *"OK to work under
      that? (yes/no)"*. On yes → `pair_charter {op:"accept"}` and continue.
-6. **Charter agreed?** → check `pair_inbox`, handle anything addressed to you (§4), then tell your
-   human you're connected and ready, with one suggestion of what to do first.
+6. **Charter agreed?** → check `pair_inbox`, handle anything addressed to you (§4) — answer
+   questions for the peer immediately, surface permission requests to your human. Then tell your
+   human you're connected and ready, suggest one first move, and offer the flow option in one
+   line: *"Want me to watch the channel for the next stretch so replies flow automatically? It
+   polls every ~30s and uses some tokens (say 'go live')."* On "go live" → `pair_live_mode
+   {on:true}` and start polling per §6.
 
 The ideal experience: human types `/pairwave`, answers ONE words-match question, maybe one charter
 yes — and the channel is fully working.

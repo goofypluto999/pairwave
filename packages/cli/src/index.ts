@@ -74,6 +74,12 @@ async function main(): Promise<void> {
       const name = flag("name") ?? defaultName();
       wireProject(projectDir, invite, name);
       out(`Pairwave room created: ${invite.roomId}  (relay: ${relayUrl}, you: ${name})`);
+      if (/^wss?:\/\/(127\.0\.0\.1|localhost)/i.test(relayUrl)) {
+        out("");
+        out("  NOTE: this relay address only works on YOUR machine (or your LAN via your IP).");
+        out("  Friend on a different network? Get a free hosted relay in 2 clicks (Deploy to");
+        out("  Render button in the README), then re-run init with:  --relay wss://<your-relay>");
+      }
       printNextSteps(projectDir, encodeInvite(invite));
       return;
     }
@@ -96,6 +102,17 @@ async function main(): Promise<void> {
       const port = flag("port") ?? "8787";
       const relayPkg = require.resolve("@pairwave/relay/package.json");
       const entry = join(dirname(relayPkg), "dist", "index.js");
+      // Show every address a peer could use, so "what do I put in --relay?" answers itself.
+      const { networkInterfaces } = await import("node:os");
+      const lanIps = Object.values(networkInterfaces())
+        .flat()
+        .filter((i) => i && i.family === "IPv4" && !i.internal)
+        .map((i) => (i as { address: string }).address);
+      out(`Relay starting on port ${port}. Reachable as:`);
+      out(`  this machine:        ws://127.0.0.1:${port}`);
+      for (const ip of lanIps) out(`  same wifi/network:   ws://${ip}:${port}`);
+      out(`  different networks:  use the free hosted relay instead (Deploy to Render button in the README)`);
+      out("");
       const child = spawn(process.execPath, [entry], {
         stdio: "inherit",
         env: { ...process.env, PORT: port },

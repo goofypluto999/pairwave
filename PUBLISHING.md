@@ -1,24 +1,24 @@
 # Publishing to npm (optional — for `npm i -g pairwave` discovery)
 
-The GitHub one-liner install does NOT need npm. Publishing is purely so people can also do
-`npm install -g pairwave`. It requires YOUR npm account (the maintainer's) — it cannot be done for
-you because it needs your login.
+The GitHub one-liner install does NOT need npm. Publishing only adds `npm install -g pairwave` as a
+second way in. It requires YOUR npm login — it can't be done for you (npm needs your credentials/2FA).
+
+Good news: as of this writing the names **`pairwave`** and the **`@pairwave/*`** scope are FREE on
+npm, so they're yours to claim.
 
 ## One-time
-1. Create a free account at https://www.npmjs.com if you don't have one.
-2. `npm login` (in this repo's folder).
-3. Check the names are free / yours:
-   - `npm view pairwave` (the CLI) — if taken, change `name` in `packages/cli/package.json`.
-   - `@pairwave/*` scope — create the org/scope on npm (free) or rename to an available scope.
+1. Free account at https://www.npmjs.com.
+2. `npm login` (in this repo folder).
+3. Create the `@pairwave` org/scope on npm (free) so the scoped packages can publish.
 
-## Each release
+## Publish (each release)
 ```bash
-npm run verify            # must be green
+npm run verify            # must be green (build + 95 tests)
 npm publish -w @pairwave/protocol  --access public
 npm publish -w @pairwave/relay     --access public
 npm publish -w @pairwave/companion --access public
 npm publish -w pairwave            --access public
 ```
-(Bump versions in the package.json files first; keep them in lockstep.)
+Bump the versions in the four package.json files first; keep them in lockstep.
 
 That's it — nothing else about the product depends on npm.

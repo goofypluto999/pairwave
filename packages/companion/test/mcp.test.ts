@@ -38,8 +38,8 @@ after(async () => {
   rmSync(dir, { recursive: true, force: true });
 });
 
-test("all 19 tools are defined with object schemas and real descriptions", () => {
-  assert.equal(TOOLS.length, 19);
+test("all 24 tools are defined with object schemas and real descriptions", () => {
+  assert.equal(TOOLS.length, 24);
   for (const t of TOOLS) {
     assert.ok(t.name.startsWith("pair_"));
     assert.ok(t.description.length > 40, `${t.name} needs a real description`);

@@ -111,6 +111,26 @@ peer's Claude directly — don't make the humans relay work items:
 5. Humans adjudicate only when you two disagree, the hop cap pauses you, or an approval is needed.
    Keep them informed in one-liners; keep the work between the two of you.
 
+## 1.8 Working ONE git repo together — no overlaps (the shared workspace)
+When the task is a shared git project, use the git-coordination tools so you two never edit the same
+files. Pairwave does NOT run git — YOU run git via your own Bash tool (Claude Code's permission =
+Gate 2). The tools coordinate ownership; the companion enforces no-overlap.
+
+1. **Agree the repo once:** `pair_git_setup {repo, branch, strategy}`. Default `shared-branch`
+   (same branch, split file ownership). Use `branch-per-person` if you'd rather each work a branch
+   and merge via PR.
+2. **Both clone/checkout** that repo+branch with your own git (Bash).
+3. **Split by files, then CLAIM before editing:** as part of the plan (§1.7), each side
+   `pair_git_claim {paths}` for its area (e.g. `["src/auth/**"]`). If a claim is **refused**
+   (`path_taken`), the peer owns it — pick a different area. **Never edit a path you don't own** —
+   check `pair_git_status` if unsure. This is the no-overlap guarantee.
+4. **Work only inside your claimed paths.** Commit + push with your own git.
+5. **Announce every push:** `pair_git_commit {sha, branch, message, paths}` → tell your human the
+   peer should pull. When you see a peer commit in `pair_git_status`, pull before continuing.
+6. **Release when done:** `pair_git_release {paths}` so the peer can take that area next.
+Record the plan + ownership in the shared brain (`pair_remember`, tags ["plan","git"]) so a
+reconnect restores who-owns-what.
+
 ## 2. Turn-taking — the floor (handle it silently)
 - Push substantive kinds (`context`, `code`, `decision`, `action.request`, `summary`) only while
   holding the floor. **Claim and yield yourself as needed (`pair_claim` / `pair_yield`) — never ask

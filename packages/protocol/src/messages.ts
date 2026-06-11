@@ -171,6 +171,28 @@ const BrainEntryBody = z.object({
   supersedes: z.string().uuid().optional(),
 });
 
+/**
+ * Git coordination — the shared-repo workspace layer.  (SPEC §9.7)
+ * Pairwave never runs git; these messages coordinate WHO works on WHAT so there are no overlaps.
+ */
+const GitContextBody = z.object({
+  repo: z.string(), // remote URL or a shared name both recognise
+  branch: z.string(),
+  baseCommit: z.string().optional(),
+  strategy: z.enum(["shared-branch", "branch-per-person"]).default("shared-branch"),
+});
+/** Claim ownership of file paths/globs — others must not edit them while claimed. */
+const GitClaimBody = z.object({ paths: z.array(z.string()).min(1).max(100), note: z.string().optional() });
+/** Release claimed paths (empty = release all of mine). */
+const GitReleaseBody = z.object({ paths: z.array(z.string()).max(100).default([]) });
+/** Announce a commit/push so the peer knows to pull. */
+const GitCommitBody = z.object({
+  sha: z.string(),
+  branch: z.string(),
+  message: z.string(),
+  paths: z.array(z.string()).max(200).default([]),
+});
+
 // ───────────────────────── Discriminated union of all kinds ─────────────────────────
 
 /** Common header on every message. (SPEC §5.2) */
@@ -213,6 +235,10 @@ export const Message = z.discriminatedUnion("kind", [
   msg("turn.claim", TurnClaimBody),
   msg("summary", SummaryBody),
   msg("brain.entry", BrainEntryBody),
+  msg("git.context", GitContextBody),
+  msg("git.claim", GitClaimBody),
+  msg("git.release", GitReleaseBody),
+  msg("git.commit", GitCommitBody),
 ]);
 export type Message = z.infer<typeof Message>;
 export type MessageKind = Message["kind"];

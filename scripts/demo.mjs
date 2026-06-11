@@ -112,6 +112,13 @@ await bob.remember({
   entryKind: "insight",
   origin: "human",
 });
+// Shared git repo — clean split, no overlaps, a push to pull.
+await alice.gitSetup({ repo: "github.com/acme/settings-app", branch: "feat/prefs", strategy: "shared-branch" });
+await wait(150);
+await alice.gitClaim(["src/lib/prefs.ts", "src/api/**"]);
+await bob.gitClaim(["src/components/SettingsToggle.tsx"]);
+await wait(150);
+await bob.gitAnnounceCommit({ sha: "9f3c1a2b7d", branch: "feat/prefs", message: "scaffold settings toggle", paths: ["src/components/SettingsToggle.tsx"] });
 await alice.send("question", { text: "Do you want pageSize in the first cut, or theme only?" }, "human");
 await wait(500);
 

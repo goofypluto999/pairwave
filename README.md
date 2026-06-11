@@ -164,7 +164,7 @@ sequenceDiagram
     R->>A: Alice sees it resolved in her ledger
 ```
 
-## What your Claude gets — 19 MCP tools
+## What your Claude gets — 24 MCP tools
 
 | Tool | Purpose |
 |---|---|
@@ -180,6 +180,9 @@ sequenceDiagram
 | `pair_claim` / `pair_yield` | Turn-taking (auto-grant on timeout — no deadlocks) |
 | `pair_live_mode` | Bounded near-real-time polling, cost stated up front |
 | `pair_remember` / `pair_recall` | **The shared brain**: durable knowledge both Claudes write + search — local, instant, overlap-free via supersession |
+| `pair_git_setup` / `pair_git_status` | **Shared git repo**: declare the repo+branch; see who owns which files and what to pull |
+| `pair_git_claim` / `pair_git_release` | **No-overlap ownership**: claim files before editing — conflicting claims are refused, races resolved deterministically |
+| `pair_git_commit` | Announce a push so your partner pulls — both trees stay in sync |
 | `pair_summarize` / `pair_handoff` / `pair_resume` | Narrative recap · session snapshot · full restore |
 
 ## The dashboard

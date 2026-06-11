@@ -27,6 +27,11 @@ const NON_HOP_KINDS: ReadonlySet<MessageKind> = new Set<MessageKind>([
   "system.charter",
   "system.bye",
   "action.result",
+  // git coordination is logistics, not conversation — it must not burn the agent hop budget.
+  "git.context",
+  "git.claim",
+  "git.release",
+  "git.commit",
 ]);
 
 export function isHopCounting(kind: MessageKind): boolean {

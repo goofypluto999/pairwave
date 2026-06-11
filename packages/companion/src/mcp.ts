@@ -226,6 +226,60 @@ export const TOOLS: ToolDef[] = [
     }),
   },
   {
+    name: "pair_git_setup",
+    description:
+      "Declare the SHARED GIT REPO you're both working on: repo (remote URL or name), branch, optional " +
+      "baseCommit, and strategy ('shared-branch' = same branch with split file ownership; " +
+      "'branch-per-person' = each on their own branch, merge via PR). Do this once after the charter.",
+    inputSchema: obj(
+      {
+        repo: str("Remote URL or a shared repo name"),
+        branch: str("The branch you'll both work against"),
+        baseCommit: str("Optional starting commit SHA"),
+        strategy: { type: "string", enum: ["shared-branch", "branch-per-person"], description: "Default shared-branch" },
+      },
+      ["repo", "branch"],
+    ),
+  },
+  {
+    name: "pair_git_status",
+    description:
+      "The shared-repo picture: branch, who owns which paths (you vs peer), any claim conflicts, and the " +
+      "peer's recent commits you should pull. Call before claiming or editing.",
+    inputSchema: obj({}),
+  },
+  {
+    name: "pair_git_claim",
+    description:
+      "CLAIM file paths/globs before you edit them — this is how overlaps are prevented. If the peer " +
+      "already owns any path, the claim is REFUSED and you're told what they own, so pick a different " +
+      "area. Claim the minimum you need (e.g. ['src/auth/**']).",
+    inputSchema: obj(
+      { paths: { type: "array", items: { type: "string" }, description: "Paths/globs to claim" }, note: str("Optional what you're doing") },
+      ["paths"],
+    ),
+  },
+  {
+    name: "pair_git_release",
+    description: "Release claimed paths when you're done with them (omit paths to release ALL of yours).",
+    inputSchema: obj({ paths: { type: "array", items: { type: "string" }, description: "Paths to release; empty = all mine" } }),
+  },
+  {
+    name: "pair_git_commit",
+    description:
+      "After you commit & push, ANNOUNCE it so the peer pulls: sha, branch, message, and the paths it " +
+      "touched. Keeps both working trees in sync without surprises.",
+    inputSchema: obj(
+      {
+        sha: str("The commit SHA"),
+        branch: str("Branch you pushed to"),
+        message: str("Commit message"),
+        paths: { type: "array", items: { type: "string" }, description: "Files the commit touched" },
+      },
+      ["sha", "branch", "message"],
+    ),
+  },
+  {
     name: "pair_handoff",
     description: "Write the per-side handoff markdown now (also happens automatically on shutdown).",
     inputSchema: obj({}),
@@ -386,6 +440,41 @@ export async function callPairTool(rt: CompanionRuntime, name: string, args: Jso
         ...(args.tags !== undefined ? { tags: args.tags as string[] } : {}),
         ...(args.kind !== undefined ? { kind: args.kind as never } : {}),
         ...(typeof args.limit === "number" ? { limit: args.limit } : {}),
+      });
+
+    case "pair_git_setup":
+      return rt.gitSetup({
+        repo: String(args.repo ?? ""),
+        branch: String(args.branch ?? ""),
+        ...(args.baseCommit !== undefined ? { baseCommit: String(args.baseCommit) } : {}),
+        ...(args.strategy !== undefined ? { strategy: args.strategy as never } : {}),
+      });
+
+    case "pair_git_status": {
+      const g = rt.gitState();
+      return {
+        repo: g.repo,
+        branch: g.branch,
+        strategy: g.strategy,
+        ownership: g.claimsByOwner,
+        conflicts: g.conflicts,
+        recentCommits: g.recentCommits,
+        note: "Only edit paths you own. Claim before editing; release when done; announce commits so your peer pulls.",
+      };
+    }
+
+    case "pair_git_claim":
+      return rt.gitClaim((args.paths as string[]) ?? [], args.note !== undefined ? String(args.note) : undefined);
+
+    case "pair_git_release":
+      return rt.gitRelease(args.paths as string[] | undefined);
+
+    case "pair_git_commit":
+      return rt.gitAnnounceCommit({
+        sha: String(args.sha ?? ""),
+        branch: String(args.branch ?? ""),
+        message: String(args.message ?? ""),
+        paths: (args.paths as string[]) ?? [],
       });
 
     case "pair_handoff":

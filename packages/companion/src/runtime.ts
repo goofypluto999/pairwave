@@ -39,6 +39,7 @@ import { quarantineCode, readQuarantined, type QuarantinedArtifact } from "./qua
 import { scanDanger } from "./guard.js";
 import { deriveLedger, type ActivityLedger } from "./ledger.js";
 import { deriveBrain, recallBrain, type BrainView, type RecallHit, type BrainEntry } from "./brain.js";
+import { deriveGitState, claimConflicts, canEdit, ownerOfPath, type GitState } from "./gitcoord.js";
 import { writeHandoff, readLatestHandoff } from "./handoff.js";
 
 export type RuntimeStatus = {
@@ -51,6 +52,15 @@ export type RuntimeStatus = {
   floor: { holder: string | "none"; turnId: string; hop: number; pendingClaim?: string | undefined };
   ledger: ActivityLedger;
   brain: { total: number; recent: { headline: string; peerId: string; ts: string; entryKind: string }[] };
+  git: {
+    repo?: string | undefined;
+    branch?: string | undefined;
+    strategy?: string | undefined;
+    mine: string[];
+    peer: { peerId: string; paths: string[] }[];
+    conflicts: { path: string; ownedBy: string; deniedTo: string }[];
+    peerCommits: { peerId: string; sha: string; message: string; ts: string }[];
+  };
   pendingPermissions: PendingPermission[];
   approvedTasks: { permissionId: string; requestMsgId: string; action: string; targetPath?: string | undefined }[];
   liveMode: { on: boolean; pollSec: number; maxMinutes: number };
@@ -442,6 +452,56 @@ export class CompanionRuntime {
     return recallBrain(this.brain(), query, opts);
   }
 
+  // ───────────────────────── git coordination (SPEC §9.7) ─────────────────────────
+
+  gitState(): GitState {
+    return deriveGitState(this.core.messages());
+  }
+
+  async gitSetup(meta: { repo: string; branch: string; baseCommit?: string; strategy?: "shared-branch" | "branch-per-person" }): Promise<SendResult> {
+    return this.send(
+      "git.context",
+      {
+        repo: meta.repo,
+        branch: meta.branch,
+        ...(meta.baseCommit !== undefined ? { baseCommit: meta.baseCommit } : {}),
+        strategy: meta.strategy ?? "shared-branch",
+      },
+      "agent",
+    );
+  }
+
+  /** Claim paths — REFUSES (without sending) if the peer already owns any of them. */
+  async gitClaim(paths: string[], note?: string): Promise<SendResult | { ok: false; code: "path_taken"; reason: string; conflicts: { path: string; ownedBy: string }[] }> {
+    const conflicts = claimConflicts(this.gitState(), this.cfg.peerId, paths);
+    if (conflicts.length > 0) {
+      return {
+        ok: false,
+        code: "path_taken",
+        reason: "your peer already owns some of those paths — pick a different area",
+        conflicts,
+      };
+    }
+    return this.send("git.claim", { paths, ...(note !== undefined ? { note } : {}) }, "agent");
+  }
+
+  async gitRelease(paths?: string[]): Promise<SendResult> {
+    return this.send("git.release", { paths: paths ?? [] }, "agent");
+  }
+
+  async gitAnnounceCommit(c: { sha: string; branch: string; message: string; paths?: string[] }): Promise<SendResult> {
+    return this.send("git.commit", { sha: c.sha, branch: c.branch, message: c.message, paths: c.paths ?? [] }, "agent");
+  }
+
+  /** Safe-to-edit check the skill calls before touching a file. */
+  gitCanEdit(path: string): { ok: boolean; ownedBy?: string | undefined } {
+    return canEdit(this.gitState(), this.cfg.peerId, path);
+  }
+
+  gitOwnerOf(path: string): string | null {
+    return ownerOfPath(this.gitState(), path);
+  }
+
   async remember(entry: {
     headline: string;
     content: string;
@@ -466,6 +526,7 @@ export class CompanionRuntime {
   async status(): Promise<RuntimeStatus> {
     const ledger = this.ledger();
     const brainView = this.brain();
+    const git = this.gitState();
     const floor = this.core.floor();
     const charter = this.agreedCharter();
     const liveModePolicy = LiveModePolicySchema.parse(charter?.liveModePolicy ?? {});
@@ -490,6 +551,20 @@ export class CompanionRuntime {
           ts: e.ts,
           entryKind: e.entryKind,
         })),
+      },
+      git: {
+        repo: git.repo,
+        branch: git.branch,
+        strategy: git.strategy,
+        mine: git.claimsByOwner[this.cfg.peerId] ?? [],
+        peer: Object.entries(git.claimsByOwner)
+          .filter(([pid]) => pid !== this.cfg.peerId)
+          .map(([peerId, paths]) => ({ peerId, paths })),
+        conflicts: git.conflicts,
+        peerCommits: git.recentCommits
+          .filter((c) => c.peerId !== this.cfg.peerId)
+          .slice(-5)
+          .map((c) => ({ peerId: c.peerId, sha: c.sha, message: c.message, ts: c.ts })),
       },
       pendingPermissions: this.queue.pending(),
       approvedTasks: [...this.approvedTasks.entries()].map(([permissionId, e]) => ({

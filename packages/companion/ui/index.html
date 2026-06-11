@@ -162,6 +162,9 @@
       <h3>Shared memory <span id="brain-count" style="color:var(--beam2)"></span></h3>
       <div class="hint">Knowledge both AIs save and search.</div>
       <div id="brain"><div class="empty">Empty — fills as your AIs learn.</div></div>
+      <h3>Shared repo <span id="git-branch" style="color:var(--beam);text-transform:none;letter-spacing:0"></span></h3>
+      <div class="hint">Who owns which files — no overlaps. Pull when your partner pushes.</div>
+      <div id="git"><div class="empty">No shared repo set yet.</div></div>
       <h3>Code shelf</h3><div class="hint">Code received safely — nothing runs without your OK.</div>
       <div id="artifacts"><div class="empty">None yet.</div></div>
       <h3>Waiting on partner</h3>
@@ -262,6 +265,15 @@
     const br=state.brain||{total:0,recent:[]};
     $("brain-count").textContent=br.total?`(${br.total})`:"";
     renderList($("brain"),(br.recent||[]).slice().reverse(),(e)=>`<div class="item">${esc(e.headline)}<div class="meta">${esc(e.entryKind)} · ${esc(e.peerId)} · ${hhmm(e.ts)}</div></div>`,"Empty — fills as your AIs learn.");
+    const g=state.git||{mine:[],peer:[],conflicts:[],peerCommits:[]};
+    $("git-branch").textContent=g.branch?("· "+g.branch):"";
+    const gitItems=[];
+    if(g.repo)gitItems.push(`<div class="item"><b>${esc(g.repo)}</b><div class="meta">${esc(g.branch||"")} · ${esc(g.strategy||"")}</div></div>`);
+    if((g.mine||[]).length)gitItems.push(`<div class="item">📂 <b>you own</b><div class="meta">${g.mine.map(esc).join(" · ")}</div></div>`);
+    (g.peer||[]).forEach(p=>gitItems.push(`<div class="item">📁 <b>${esc(p.peerId)} owns</b> <span style="color:var(--faint);font-size:11px">— don't edit</span><div class="meta">${p.paths.map(esc).join(" · ")}</div></div>`));
+    (g.peerCommits||[]).forEach(c=>gitItems.push(`<div class="item">⬇ <b>pull</b>: ${esc(c.message)}<div class="meta">${esc(c.sha).slice(0,9)} · from ${esc(c.peerId)} · ${hhmm(c.ts)}</div></div>`));
+    (g.conflicts||[]).forEach(c=>gitItems.push(`<div class="item" style="border-color:rgba(255,107,107,.4)">⚠ <b>${esc(c.path)}</b> taken by ${esc(c.ownedBy)}<div class="meta">${esc(c.deniedTo)}'s claim was refused</div></div>`));
+    $("git").innerHTML=gitItems.length?gitItems.join(""):`<div class="empty">No shared repo set yet.</div>`;
     renderList($("artifacts"),led.sharedArtifacts||[],(a)=>`<div class="item">${esc(a.headline)}<div class="meta">${esc(a.language)}${a.isPatch?" patch":""} · from ${esc(a.peerId)}</div></div>`,"None yet.");
     renderList($("pending-out"),(led.pendingActions||[]).filter(p=>p.peerId===myPeerId),(p)=>`<div class="item">${esc(p.summary)}<div class="meta">sent ${hhmm(p.ts)} — no reply yet</div></div>`,"Nothing pending.");
     renderList($("headlines"),(led.headlines||[]).slice().reverse(),(h)=>`<div class="item">${esc(h.headline)}<div class="meta">${esc(h.kind)} · ${esc(h.peerId)} · ${hhmm(h.ts)}</div></div>`,"Quiet so far.");

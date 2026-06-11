@@ -98,8 +98,8 @@
     <div class="sub">The whole system — packaged → installed → live — with what's tested and what isn't. Click any node.</div>
     <div class="stat-row">
       <div class="stat"><b>4</b><span>packages</span></div>
-      <div class="stat"><b>31</b><span>source modules</span></div>
-      <div class="stat"><b>88</b><span>automated tests ✓</span></div>
+      <div class="stat"><b>32</b><span>source modules</span></div>
+      <div class="stat"><b>95</b><span>automated tests ✓</span></div>
       <div class="stat"><b>0</b><span>central servers</span></div>
       <div class="stat"><b>E2E</b><span>encrypted</span></div>
     </div>
@@ -139,7 +139,7 @@
         <path class="linkline" stroke="#5cc8ff" d="M1012 450 L1012 506"/><text class="linklabel" x="1020" y="484">localhost</text>
       </svg>
 
-      <div class="node" data-id="claudeA" style="left:3.2%;top:14.5%;width:22%;height:15.2%"><div class="nodebox"><div class="nb-title"><span class="dot" style="background:var(--ok)"></span>Claude Code · A</div><div class="nb-sub">the human's AI · gets 19 pair_* tools</div><div class="nb-chips"><span class="mc">/pairwave skill</span><span class="mc">approves MCP</span></div></div></div>
+      <div class="node" data-id="claudeA" style="left:3.2%;top:14.5%;width:22%;height:15.2%"><div class="nodebox"><div class="nb-title"><span class="dot" style="background:var(--ok)"></span>Claude Code · A</div><div class="nb-sub">the human's AI · gets 24 pair_* tools</div><div class="nb-chips"><span class="mc">/pairwave skill</span><span class="mc">approves MCP</span></div></div></div>
       <div class="node" data-id="companionA" style="left:3.2%;top:37.9%;width:22%;height:30.3%"><div class="nodebox"><div class="nb-title"><span class="dot" style="background:var(--ok)"></span>Companion · A <span style="font:9px var(--mono);color:var(--faint)">(brain)</span></div><div class="nb-sub">trusted · holds the key · no project/shell access</div><div class="nb-chips"><span class="mc">engine</span><span class="mc">runtime</span><span class="mc">floor</span><span class="mc">guard</span><span class="mc">brain</span><span class="mc">permissions</span><span class="mc">ledger</span><span class="mc">handoff</span><span class="mc">persist</span><span class="mc">+6 — click</span></div></div></div>
       <div class="node" data-id="dashA" style="left:3.2%;top:76.7%;width:22%;height:14.5%"><div class="nodebox"><div class="nb-title"><span class="dot" style="background:var(--live)"></span>Dashboard · A</div><div class="nb-sub">127.0.0.1 · decrypts locally</div><div class="nb-chips"><span class="mc">approvals</span><span class="mc">brain rail</span><span class="mc">SAS</span></div></div></div>
       <div class="node" data-id="relay" style="left:39.8%;top:42.7%;width:20.3%;height:18.2%"><div class="nodebox" style="border-color:var(--v2)"><div class="nb-title"><span class="dot" style="background:var(--impl)"></span>Relay</div><div class="nb-sub">UNTRUSTED · ciphertext only</div><div class="nb-chips"><span class="mc">fan-out by room</span><span class="mc">2-peer cap</span><span class="mc">TTL store</span></div></div></div>
@@ -242,12 +242,13 @@
   <!-- TEST MATRIX -->
   <section class="view" id="v-test">
     <div class="panel">
-      <h3>Test &amp; status matrix — 88 automated + live proofs</h3>
+      <h3>Test &amp; status matrix — 95 automated + live proofs</h3>
       <table style="margin-top:10px">
         <tr><th>Area</th><th>Coverage</th><th>Status</th></tr>
         <tr><td>Crypto core (protocol)</td><td class="mono">12: seal/open, tamper/forge/replay fail-closed, SAS, hash-DAG</td><td><span class="pill ok">tested</span></td></tr>
         <tr><td>Relay (untrusted bus)</td><td class="mono">6: E2E via real WS, ciphertext-only store, replay, presence, 2-peer cap</td><td><span class="pill ok">tested</span></td></tr>
-        <tr><td>Companion brain</td><td class="mono">65: floor/hops, gates, guard, secrets, quarantine, ledger, brain, engine+runtime e2e, stress</td><td><span class="pill ok">tested</span></td></tr>
+        <tr><td>Companion brain</td><td class="mono">72: floor/hops, gates, guard, secrets, quarantine, ledger, brain, git no-overlap, engine+runtime e2e, stress</td><td><span class="pill ok">tested</span></td></tr>
+        <tr><td>Git coordination</td><td class="mono">7: path-ownership ledger, overlap detection, earlier-wins, proactive refusal, release</td><td><span class="pill ok">tested</span></td></tr>
         <tr><td>CLI / install wiring</td><td class="mono">5: invite codec, project wiring, no-clobber, idempotency</td><td><span class="pill ok">tested</span></td></tr>
         <tr><td>Stress (real sockets)</td><td class="mono">floods (zero loss, same order), relay outage+recovery, 300KB, fork convergence</td><td><span class="pill ok">tested</span></td></tr>
         <tr><td>Install from GitHub URL</td><td class="mono">clean run, exit 0; self-heal of force-pushed clone</td><td><span class="pill live">live-verified</span></td></tr>

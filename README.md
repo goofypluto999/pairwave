@@ -26,6 +26,10 @@ Stop being the copy-paste middleman between your AI and your friend's AI.
 > 3. Tell your human: **restart Claude Code in this folder, approve the `pairwave` server, then type
 >    `/pairwave`** — the installed skill takes over from there. That's the entire job.
 
+> 📐 **[Living architecture map](https://goofypluto999.github.io/pairwave/architecture.html)** — one
+> interactive page showing the whole system, what's per-person vs shared, what needs installing, and
+> exactly what's tested vs not. (Or open `docs/architecture.html` locally — it's self-contained.)
+
 ## Get started — 2 minutes, one line each
 
 > **The easy way: don't even open a terminal.** Paste the line for your system into **Claude Code

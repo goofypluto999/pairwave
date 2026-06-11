@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pairwave — Living Architecture Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=IBM+Plex+Mono:wght@400;600&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#0a0c10;--panel:#0f1218;--card:#141925;--card2:#1a2030;--line:#202736;--line2:#2c3650;
+    --text:#e9edf5;--dim:#94a0b8;--faint:#5a657c;--beam:#5cc8ff;--beam2:#9a7bff;
+    --ok:#3ddc97;--live:#5cc8ff;--impl:#ffc24b;--you:#ff8e57;--v2:#b98bff;--bad:#ff6b6b;
+    --mono:"IBM Plex Mono",ui-monospace,monospace;--disp:"Bricolage Grotesque",sans-serif;--body:"Instrument Sans",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0}
+  body{background:
+      radial-gradient(900px 460px at 16% -8%,rgba(92,200,255,.10),transparent 60%),
+      radial-gradient(900px 460px at 84% -8%,rgba(154,123,255,.10),transparent 60%),
+      radial-gradient(1200px 600px at 50% -260px,#131a2c,var(--bg) 62%);
+    color:var(--text);font:15px/1.6 var(--body);min-height:100vh;padding:28px 20px 80px}
+  .wrap{max-width:1240px;margin:0 auto}
+  header.top{text-align:center;margin-bottom:8px}
+  h1{font:800 34px var(--disp);letter-spacing:.3px}
+  h1 span{background:linear-gradient(90deg,var(--beam),var(--beam2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .sub{color:var(--dim);font-size:15px;margin-top:4px}
+  .stat-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:18px 0 6px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 16px;min-width:118px;text-align:center}
+  .stat b{display:block;font:800 22px var(--disp);color:var(--beam)}
+  .stat span{font-size:12px;color:var(--dim)}
+  .legend{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:16px 0 6px}
+  .lg{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--dim);background:var(--card);border:1px solid var(--line);border-radius:99px;padding:5px 12px}
+  .swatch{width:11px;height:11px;border-radius:3px;flex:none}
+  .tabs{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:22px 0 18px}
+  .tab{font:600 14px var(--body);background:var(--card);border:1px solid var(--line2);color:var(--dim);border-radius:10px;padding:9px 18px;cursor:pointer;transition:.15s}
+  .tab:hover{border-color:var(--beam);color:var(--text)}
+  .tab.on{background:linear-gradient(135deg,var(--beam),var(--beam2));color:#0a0e14;border-color:transparent;font-weight:700}
+  .view{display:none;animation:fade .3s ease}.view.on{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  /* stage: SVG lines + HTML node overlay */
+  .stagewrap{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:10px}
+  .stage2{position:relative;width:100%;aspect-ratio:1180 / 660;min-height:340px}
+  .stage2 svg.lines{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+  .node{position:absolute;cursor:pointer}
+  .nodebox{width:100%;height:100%;border-radius:14px;border:1px solid var(--line2);background:linear-gradient(180deg,rgba(255,255,255,.03),transparent),var(--card);
+    padding:11px 13px;box-shadow:0 10px 26px rgba(0,0,0,.28);transition:transform .15s,border-color .15s;overflow:hidden}
+  .node:hover .nodebox{transform:translateY(-2px);border-color:var(--beam)}
+  .node.sel .nodebox{border-color:var(--beam);box-shadow:0 0 0 1px var(--beam),0 0 26px rgba(92,200,255,.18)}
+  .nb-title{font:700 13.5px var(--disp);display:flex;align-items:center;gap:7px}
+  .nb-sub{font:10.5px var(--mono);color:var(--faint);margin-top:2px;line-height:1.35}
+  .nb-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+  .mc{font:9px var(--mono);background:var(--card2);border:1px solid var(--line);border-radius:5px;padding:1px 5px;color:var(--dim)}
+  .dot{width:9px;height:9px;border-radius:50%;flex:none}
+  .band{fill:rgba(92,200,255,.04);stroke:rgba(92,200,255,.18);stroke-dasharray:5 6}
+  .roomband{fill:rgba(154,123,255,.05);stroke:rgba(154,123,255,.22);stroke-dasharray:5 6}
+  .bandlabel{fill:var(--faint);font:600 11px var(--mono);letter-spacing:1px;text-transform:uppercase}
+  .linkline{stroke-width:2.2;fill:none;opacity:.5}
+  .beamline{stroke:url(#beamgrad);stroke-width:3.2;fill:none;stroke-dasharray:9 8;animation:dash 1.3s linear infinite}
+  @keyframes dash{to{stroke-dashoffset:-34}}
+  @media (prefers-reduced-motion:reduce){.beamline{animation:none;opacity:.75}}
+  .linklabel{fill:var(--dim);font:600 10.5px var(--mono)}
+
+  .detail{margin-top:16px;background:var(--card);border:1px solid var(--line2);border-radius:14px;padding:18px 20px;min-height:96px}
+  .detail h3{font:700 17px var(--disp);display:flex;align-items:center;gap:9px}
+  .detail .meta{font:12px var(--mono);color:var(--faint);margin:2px 0 10px}
+  .detail p{color:#cdd5e4;font-size:14px}
+  .detail ul{margin:10px 0 0 2px;list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:6px 18px}
+  @media(max-width:760px){.detail ul{grid-template-columns:1fr}}
+  .detail li{font-size:13px;color:var(--dim);display:flex;gap:8px;align-items:baseline}
+  .detail li b{color:var(--text);font-weight:600;font-family:var(--mono);font-size:12px}
+  .pill{font:10px var(--mono);padding:1px 7px;border-radius:5px}
+
+  .grid{display:grid;gap:14px}.cols2{grid-template-columns:1fr 1fr}
+  @media(max-width:880px){.cols2{grid-template-columns:1fr}}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+  .panel h3{font:700 16px var(--disp);margin-bottom:4px;display:flex;align-items:center;gap:8px}
+  .panel h3::before{content:"";width:14px;height:3px;border-radius:2px;background:linear-gradient(90deg,var(--beam),var(--beam2))}
+  .panel .k{font:11px var(--mono);color:var(--faint)}
+  .step{display:flex;gap:13px;padding:11px 0;border-bottom:1px solid var(--line)}
+  .step:last-child{border:0}
+  .stepnum{width:26px;height:26px;border-radius:8px;flex:none;display:grid;place-items:center;font:700 13px var(--disp);background:var(--card2);border:1px solid var(--line2);color:var(--beam)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font:700 11px var(--disp);text-transform:uppercase;letter-spacing:.8px;color:var(--dim)}
+  .mono{font-family:var(--mono);font-size:12px;color:var(--dim)}
+  .hl{color:var(--text);font-weight:600}
+  .foot{text-align:center;color:var(--faint);font-size:12px;margin-top:26px}
+  .pill.ok{background:rgba(61,220,151,.15);color:var(--ok)}.pill.live{background:rgba(92,200,255,.15);color:var(--live)}
+  .pill.impl{background:rgba(255,194,75,.15);color:var(--impl)}.pill.you{background:rgba(255,142,87,.15);color:var(--you)}
+  .pill.v2{background:rgba(185,139,255,.15);color:var(--v2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>pair<span>wave</span> · living architecture</h1>
+    <div class="sub">The whole system — packaged → installed → live — with what's tested and what isn't. Click any node.</div>
+    <div class="stat-row">
+      <div class="stat"><b>4</b><span>packages</span></div>
+      <div class="stat"><b>31</b><span>source modules</span></div>
+      <div class="stat"><b>88</b><span>automated tests ✓</span></div>
+      <div class="stat"><b>0</b><span>central servers</span></div>
+      <div class="stat"><b>E2E</b><span>encrypted</span></div>
+    </div>
+    <div class="legend">
+      <span class="lg"><span class="swatch" style="background:var(--ok)"></span>Tested (automated)</span>
+      <span class="lg"><span class="swatch" style="background:var(--live)"></span>Live-verified</span>
+      <span class="lg"><span class="swatch" style="background:var(--impl)"></span>Built, not e2e-tested here</span>
+      <span class="lg"><span class="swatch" style="background:var(--you)"></span>Needs you</span>
+      <span class="lg"><span class="swatch" style="background:var(--v2)"></span>Planned v2</span>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <div class="tab on" data-v="arch">② Live Architecture</div>
+    <div class="tab" data-v="setup">① Setup &amp; Packaging</div>
+    <div class="tab" data-v="sec">③ Security &amp; Safety</div>
+    <div class="tab" data-v="test">④ Test &amp; Status Matrix</div>
+  </div>
+
+  <!-- ARCHITECTURE -->
+  <section class="view on" id="v-arch">
+    <div class="stagewrap"><div class="stage2">
+      <svg class="lines" viewBox="0 0 1180 660" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="beamgrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#5cc8ff"/><stop offset="1" stop-color="#9a7bff"/></linearGradient></defs>
+        <rect class="band" x="18" y="60" width="300" height="560" rx="16"/>
+        <text class="bandlabel" x="30" y="48">Person A · their machine (trusted)</text>
+        <rect class="band" x="862" y="60" width="300" height="560" rx="16"/>
+        <text class="bandlabel" x="874" y="48">Person B · their machine (trusted)</text>
+        <rect class="roomband" x="360" y="250" width="460" height="200" rx="16"/>
+        <text class="bandlabel" x="388" y="238" style="fill:#9a86c9">The shared room · ciphertext only · no one can read it</text>
+        <path class="linkline" stroke="#5cc8ff" d="M168 196 L168 250"/><text class="linklabel" x="176" y="228">MCP · stdio</text>
+        <path class="linkline" stroke="#5cc8ff" d="M168 450 L168 506"/><text class="linklabel" x="176" y="484">localhost</text>
+        <path class="beamline" d="M298 332 C 350 332, 410 342, 470 342"/><text class="linklabel" x="318" y="322">E2E · WSS</text>
+        <path class="beamline" d="M710 342 C 770 342, 820 332, 862 332"/>
+        <path class="linkline" stroke="#5cc8ff" d="M1012 196 L1012 250"/><text class="linklabel" x="1020" y="228">MCP · stdio</text>
+        <path class="linkline" stroke="#5cc8ff" d="M1012 450 L1012 506"/><text class="linklabel" x="1020" y="484">localhost</text>
+      </svg>
+
+      <div class="node" data-id="claudeA" style="left:3.2%;top:14.5%;width:22%;height:15.2%"><div class="nodebox"><div class="nb-title"><span class="dot" style="background:var(--ok)"></span>Claude Code · A</div><div class="nb-sub">the human's AI · gets 19 pair_* tools</div><div class="nb-chips"><span class="mc">/pairwave skill</span><span class="mc">approves MCP</span></div></div></div>
+      <div class="node" data-id="companionA" style="left:3.2%;top:37.9%;width:22%;height:30.3%"><div class="nodebox"><div class="nb-title"><span class="dot" style="background:var(--ok)"></span>Companion · A <span style="font:9px var(--mono);color:var(--faint)">(brain)</span></div><div class="nb-sub">trusted · holds the key · no project/shell access</div><div class="nb-chips"><span class="mc">engine</span><span class="mc">runtime</span><span class="mc">floor</span><span class="mc">guard</span><span class="mc">brain</span><span class="mc">permissions</span><span class="mc">ledger</span><span class="mc">handoff</span><span class="mc">persist</span><span class="mc">+6 — click</span></div></div></div>
+      <div class="node" data-id="dashA" style="left:3.2%;top:76.7%;width:22%;height:14.5%"><div class="nodebox"><div class="nb-title"><span class="dot" style="background:var(--live)"></span>Dashboard · A</div><div class="nb-sub">127.0.0.1 · decrypts locally</div><div class="nb-chips"><span class="mc">approvals</span><span class="mc">brain rail</span><span class="mc">SAS</span></div></div></div>
+      <div class="node" data-id="relay" style="left:39.8%;top:42.7%;width:20.3%;height:18.2%"><div class="nodebox" style="border-color:var(--v2)"><div class="nb-title"><span class="dot" style="background:var(--impl)"></span>Relay</div><div class="nb-sub">UNTRUSTED · ciphertext only</div><div class="nb-chips"><span class="mc">fan-out by room</span><span class="mc">2-peer cap</span><span class="mc">TTL store</span></div></div></div>
+      <div class="node" data-id="claudeA" style="left:74.7%;top:14.5%;width:22%;height:15.2%"><div class="nodebox"><div class="nb-title"><span class="dot" style="background:var(--ok)"></span>Claude Code · B</div><div class="nb-sub">mirror of A · independent session</div><div class="nb-chips"><span class="mc">/pairwave skill</span><span class="mc">approves MCP</span></div></div></div>
+      <div class="node" data-id="companionA" style="left:74.7%;top:37.9%;width:22%;height:30.3%"><div class="nodebox"><div class="nb-title"><span class="dot" style="background:var(--ok)"></span>Companion · B <span style="font:9px var(--mono);color:var(--faint)">(brain)</span></div><div class="nb-sub">identical to A · own key &amp; identity</div><div class="nb-chips"><span class="mc">same 16 modules</span><span class="mc">own .pairwave/</span><span class="mc">click to explore</span></div></div></div>
+      <div class="node" data-id="dashA" style="left:74.7%;top:76.7%;width:22%;height:14.5%"><div class="nodebox"><div class="nb-title"><span class="dot" style="background:var(--live)"></span>Dashboard · B</div><div class="nb-sub">127.0.0.1 · their own port</div><div class="nb-chips"><span class="mc">approvals</span><span class="mc">brain rail</span><span class="mc">SAS</span></div></div></div>
+    </div></div>
+    <div class="detail" id="detail">
+      <h3>Click any node to inspect it</h3>
+      <div class="meta">The two machines are mirrors. The relay between them is dumb and untrusted — it only moves sealed bytes.</div>
+      <p>Everything left of the relay is Person A's trusted machine; everything right is Person B's. The only thing that crosses the internet is end-to-end-encrypted, signed, tamper-evident ciphertext.</p>
+    </div>
+  </section>
+
+  <!-- SETUP -->
+  <section class="view" id="v-setup">
+    <div class="grid cols2">
+      <div class="panel">
+        <h3>One prompt → fully set up</h3>
+        <div class="k">Person A runs one line (or pastes it to Claude Code: "run this")</div>
+        <div style="margin-top:12px">
+          <div class="step"><div class="stepnum">1</div><div><b>One-line installer</b> — checks Node 20+ &amp; git. <span class="pill live">live-verified</span></div></div>
+          <div class="step"><div class="stepnum">2</div><div><b>Clones the app</b> to <span class="mono">~/.pairwave/app</span> (outside your project), builds it, self-heals a force-pushed update. <span class="pill live">live-verified</span></div></div>
+          <div class="step"><div class="stepnum">3</div><div><b>Installs global <span class="mono">pairwave</span></b> + link fallback for locked-down machines. <span class="pill live">live-verified</span></div></div>
+          <div class="step"><div class="stepnum">4</div><div><b>Wires THIS project</b>: <span class="mono">.pairwave/config.json</span>, the MCP server in <span class="mono">.mcp.json</span>, the <span class="mono">/pairwave</span> skill, gitignore. <span class="pill ok">tested</span></div></div>
+          <div class="step"><div class="stepnum">5</div><div><b>Prints a ready-to-send block</b> for the friend (invite embedded) + tells you to type <span class="mono">/pairwave</span>. <span class="pill ok">tested</span></div></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Per-person vs shared</h3>
+        <div class="k">Each side self-contained; only the encrypted room is shared.</div>
+        <table style="margin-top:10px">
+          <tr><th>Per person (local)</th><th>Shared (the room)</th></tr>
+          <tr><td>Node 20+ &amp; git</td><td>roomId + passphrase (invite)</td></tr>
+          <tr><td>the built app clone</td><td>one relay (either side, or Render)</td></tr>
+          <tr><td>identity keypair</td><td>the encrypted message DAG</td></tr>
+          <tr><td>project <span class="mono">.pairwave/</span> (log, outbox, quarantine, handoff)</td><td>the working agreement (charter)</td></tr>
+          <tr><td>companion + localhost dashboard</td><td>the shared brain (memory)</td></tr>
+          <tr><td>Claude Code + MCP approval</td><td>SAS verification of each other</td></tr>
+        </table>
+      </div>
+      <div class="panel">
+        <h3>Needs installing</h3>
+        <ul style="list-style:none;display:grid;gap:8px;margin-top:6px">
+          <li class="mono" style="color:var(--text)">● Node.js 20+ <span style="color:var(--faint)">— required, checked</span></li>
+          <li class="mono" style="color:var(--text)">● git <span style="color:var(--faint)">— required, checked</span></li>
+          <li class="mono" style="color:var(--dim)">○ cloudflared <span style="color:var(--faint)">— only for remote `relay --public`</span></li>
+          <li class="mono" style="color:var(--faint)">✓ zod · libsodium · ws · MCP SDK — installed automatically</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>The relay — 3 ways, your choice</h3>
+        <div class="step"><div class="stepnum" style="color:var(--ok)">A</div><div><b>Same wifi</b> → <span class="mono">pairwave relay</span>. <span class="pill ok">tested</span></div></div>
+        <div class="step"><div class="stepnum" style="color:var(--impl)">B</div><div><b>Remote, no account</b> → <span class="mono">pairwave relay --public</span> (Cloudflare tunnel). <span class="pill impl">tunnel-hop not e2e here</span></div></div>
+        <div class="step"><div class="stepnum" style="color:var(--live)">C</div><div><b>Remote, no install</b> → Deploy-to-Render button. <span class="pill live">config verified</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECURITY -->
+  <section class="view" id="v-sec">
+    <div class="grid cols2">
+      <div class="panel"><h3>Can anyone break into a room?</h3>
+        <table style="margin-top:8px">
+          <tr><th>Attack</th><th>Why it fails</th></tr>
+          <tr><td>Find the relay</td><td>Needs the 192-bit invite passphrase (relay never has it)</td></tr>
+          <tr><td>Eavesdrop</td><td>XChaCha20-Poly1305; roomId bound as AEAD AD</td></tr>
+          <tr><td>Forge / tamper</td><td>Ed25519 sigs + hash-DAG — fails on arrival &amp; reload</td></tr>
+          <tr><td>Impersonate at invite</td><td>SAS six-word check, out-of-band</td></tr>
+          <tr><td>Third joiner</td><td>Relay caps at 2 peers; no passphrase = ciphertext only</td></tr>
+          <tr><td>Hostile peer action</td><td>Danger guard + dual gates + zero companion disk/shell access</td></tr>
+        </table>
+      </div>
+      <div class="panel"><h3>Safety barriers (every inbound action)</h3>
+        <div class="step"><div class="stepnum" style="color:var(--bad)">!</div><div><b>Danger guard</b> — deletions, terraform, force-push, DB wipes, protected paths → forced high-risk, <span class="hl">never auto-approved</span>. <span class="pill ok">tested</span></div></div>
+        <div class="step"><div class="stepnum" style="color:var(--impl)">1</div><div><b>Gate 1</b> — Pairwave popup: accept the request? <span class="pill ok">tested</span></div></div>
+        <div class="step"><div class="stepnum" style="color:var(--impl)">2</div><div><b>Gate 2</b> — Claude Code's own prompt when your AI applies it. <span class="pill ok">by design</span></div></div>
+        <div class="step"><div class="stepnum" style="color:var(--ok)">⊘</div><div><b>Secret scanner</b> blocks keys leaving; keys never travel the channel. <span class="pill ok">tested</span></div></div>
+      </div>
+      <div class="panel"><h3>Stays alive &amp; recoverable</h3>
+        <ul style="list-style:none;display:grid;gap:7px;margin-top:6px;font-size:13px;color:var(--dim)">
+          <li>● Durable signed log + crash-safe outbox (redelivers after a drop) <span class="pill ok">stress-tested</span></li>
+          <li>● Reconnect with replay; floor auto-recovers; presence tracked</li>
+          <li>● Handoff file on every shutdown → <span class="hl">resume with full memory</span> <span class="pill ok">tested</span></li>
+          <li>● Corrupt state degrades to defaults, never crashes</li>
+          <li>● AI self-repair runbook + fork→PR contribute-back flow</li>
+        </ul>
+      </div>
+      <div class="panel"><h3>Honest limits (v1)</h3>
+        <ul style="list-style:none;display:grid;gap:7px;margin-top:6px;font-size:13px;color:var(--dim)">
+          <li><span class="pill v2">v2</span> Forward secrecy — static room key; rotate rooms meanwhile</li>
+          <li><span class="pill v2">v2</span> &gt;2-person rooms — model is deliberately 2-party</li>
+          <li>Relay sees metadata (sizes, timing, presence) — never content</li>
+          <li>A compromised endpoint or a lying trusted peer is out of scope</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- TEST MATRIX -->
+  <section class="view" id="v-test">
+    <div class="panel">
+      <h3>Test &amp; status matrix — 88 automated + live proofs</h3>
+      <table style="margin-top:10px">
+        <tr><th>Area</th><th>Coverage</th><th>Status</th></tr>
+        <tr><td>Crypto core (protocol)</td><td class="mono">12: seal/open, tamper/forge/replay fail-closed, SAS, hash-DAG</td><td><span class="pill ok">tested</span></td></tr>
+        <tr><td>Relay (untrusted bus)</td><td class="mono">6: E2E via real WS, ciphertext-only store, replay, presence, 2-peer cap</td><td><span class="pill ok">tested</span></td></tr>
+        <tr><td>Companion brain</td><td class="mono">65: floor/hops, gates, guard, secrets, quarantine, ledger, brain, engine+runtime e2e, stress</td><td><span class="pill ok">tested</span></td></tr>
+        <tr><td>CLI / install wiring</td><td class="mono">5: invite codec, project wiring, no-clobber, idempotency</td><td><span class="pill ok">tested</span></td></tr>
+        <tr><td>Stress (real sockets)</td><td class="mono">floods (zero loss, same order), relay outage+recovery, 300KB, fork convergence</td><td><span class="pill ok">tested</span></td></tr>
+        <tr><td>Install from GitHub URL</td><td class="mono">clean run, exit 0; self-heal of force-pushed clone</td><td><span class="pill live">live-verified</span></td></tr>
+        <tr><td>Internet round-trip</td><td class="mono">2 companions, real relay, real internet: peers + SAS + decrypt</td><td><span class="pill live">live-verified</span></td></tr>
+        <tr><td>Dashboard UI</td><td class="mono">browser: chips, popup, approve flow, brain rail, human chat onto wire</td><td><span class="pill live">live-verified</span></td></tr>
+        <tr><td>This map</td><td class="mono">browser: renders, tabs switch, every node opens its detail, zero console errors</td><td><span class="pill live">live-verified</span></td></tr>
+        <tr><td>Remote tunnel (`--public`)</td><td class="mono">detection + fallback verified; live trycloudflare hop not run from sandbox</td><td><span class="pill impl">built, not e2e here</span></td></tr>
+        <tr><td>Live two-human session</td><td class="mono">you + Joao in real Claude Code — the final proof</td><td><span class="pill you">needs you</span></td></tr>
+        <tr><td>npm publish</td><td class="mono">prepped (PUBLISHING.md); needs your npm login</td><td><span class="pill you">needs you</span></td></tr>
+        <tr><td>Forward secrecy / N-party</td><td class="mono">deliberately deferred — real design + review required</td><td><span class="pill v2">planned v2</span></td></tr>
+      </table>
+    </div>
+  </section>
+
+  <div class="foot">Pairwave · Free for noncommercial use (PolyForm NC 1.0) · github.com/goofypluto999/pairwave · open <span class="mono">docs/architecture.html</span> in any browser</div>
+</div>
+
+<script>
+  const NODES = {
+    claudeA:{title:"Claude Code (each person)",dot:"var(--ok)",meta:"the human's AI assistant · per machine",
+      body:"Each person runs their own Claude Code session in the shared project folder. Pairwave installs the <b>/pairwave</b> skill and registers a local MCP server giving Claude 19 <b>pair_*</b> tools. The two Claudes never connect directly — they talk only through their companions and the relay.",
+      mods:[["/pairwave skill","drives the protocol: verify → agree → plan → split → build"],["19 MCP tools","talk, share code, request actions, remember/recall, claim/yield, summarize, resume"]]},
+    companionA:{title:"Companion — the brain (per machine, 16 modules)",dot:"var(--ok)",meta:"trusted local process · holds the key · NO project-tree or shell access",
+      body:"The only component that sees plaintext. It seals/opens messages, enforces every rule, serves the dashboard, and persists state. Identical on both machines. Covered by 65 companion tests including full runtime e2e over real sockets.",
+      mods:[["engine.ts","gate → secret-scan → sign → seal / decrypt → verify → dedupe"],["runtime.ts","I/O composition: relay, persistence, side-effects, permission queue"],["floor.ts","turn-taking + anti-loop hop caps (hard-enforced)"],["bootstrap.ts","SAS + charter gate before any substantive exchange"],["guard.ts","danger filter: deletions/terraform/protected paths → never auto-approve"],["secrets.ts","outbound key/token scanner — blocks leaks"],["permissions.ts","Gate 1 queue + risk re-normalization"],["quarantine.ts","inert code shelf — nothing runs unprompted"],["ledger.ts","activity rail (questions, decisions, artifacts)"],["brain.ts","shared memory: remember + deterministic recall"],["handoff.ts","resume file written every shutdown"],["persist.ts","crash-safe disk: log.jsonl, outbox, identity, state"],["relayclient.ts","reconnecting WS client with replay"],["mcp.ts","the 19 pair_* tool surface for Claude Code"],["uiserver.ts","localhost dashboard API + live SSE"],["index.ts","boot + lifecycle"]]},
+    dashA:{title:"Local dashboard (per machine)",dot:"var(--live)",meta:"http://127.0.0.1 · decrypts locally · never leaves the box",
+      body:"A zero-build web page served by each companion. Two mirrors of the same channel — each shows your seat: the connection beam, transcript, shared-memory rail, approval popups, SAS verification, and a human chat box (your guide-channel; the Claudes do the real work). Browser-verified.",
+      mods:[["approvals","Gate-1 popups with risk + danger flags"],["brain rail","shared memory, decisions, open questions, code shelf"],["SAS banner","one-time six-word safety check"],["human chat","you steer; the AIs collaborate"]]},
+    relay:{title:"Relay — untrusted message bus",dot:"var(--impl)",meta:"sees CIPHERTEXT ONLY · 0 central servers — every pair brings their own",
+      body:"A dumb pipe: fans out sealed envelopes by room, assigns ordering, stores ciphertext with a TTL, reports presence, caps each room at 2 peers. It cannot read or forge anything. Run it on same-wifi (pairwave relay), over a free no-account Cloudflare tunnel (--public), or one Render click. 6 relay tests prove it stores no plaintext.",
+      mods:[["fan-out","routes encrypted envelopes by roomId"],["seq + replay","ordering hint + history for reconnect"],["2-peer cap","a third connection is refused"],["TTL store","ciphertext expires; a burn command purges"]]}
+  };
+  const dd = document.getElementById("detail");
+  function show(id){
+    const n = NODES[id]; if(!n) return;
+    document.querySelectorAll(".node").forEach(x=>x.classList.toggle("sel", x.getAttribute("data-id")===id));
+    dd.innerHTML = `<h3><span class="dot" style="background:${n.dot}"></span>${n.title}</h3>`+
+      `<div class="meta">${n.meta}</div><p>${n.body}</p>`+
+      (n.mods?`<ul>${n.mods.map(m=>`<li><b>${m[0]}</b> ${m[1]}</li>`).join("")}</ul>`:"");
+    dd.scrollIntoView({behavior:"smooth",block:"nearest"});
+  }
+  document.querySelectorAll(".node").forEach(el=>{el.addEventListener("click",()=>show(el.getAttribute("data-id")));});
+  document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));
+    document.querySelectorAll(".view").forEach(x=>x.classList.remove("on"));
+    t.classList.add("on"); document.getElementById("v-"+t.getAttribute("data-v")).classList.add("on");
+  }));
+</script>
+</body>
+</html>

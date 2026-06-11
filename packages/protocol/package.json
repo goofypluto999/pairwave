@@ -15,7 +15,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --import tsx --test test/crypto.test.ts test/dag.test.ts"
+    "test": "node --import tsx --test test/crypto.test.ts test/dag.test.ts test/fs.test.ts"
   },
   "dependencies": {
     "libsodium-wrappers-sumo": "^0.7.15",

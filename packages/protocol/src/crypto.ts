@@ -203,3 +203,39 @@ export async function sas(
   }
   return out;
 }
+
+// ───────────── Forward secrecy: ephemeral X25519 key agreement (SPEC §10.1) ─────────────
+//
+// Content (everything but the handshake) is sealed with a key derived from an EPHEMERAL ECDH:
+// each peer makes a throwaway X25519 keypair, announces its public half (signed by its long-term
+// identity, so it's authenticated and SAS still anchors trust), and both derive the same content
+// key from scalarmult(my_secret, peer_public). Because the content key is NOT derivable from the
+// passphrase, recorded relay/network ciphertext stays unreadable to anyone who only later learns
+// the passphrase. The ephemeral private keys live only as long as the room and are deleted on burn.
+
+export type Ephemeral = { publicKey: Uint8Array; secretKey: Uint8Array };
+
+/** A throwaway X25519 keypair for this room's content encryption. Never derived from the passphrase. */
+export async function generateEphemeral(): Promise<Ephemeral> {
+  const s = await sodium();
+  const kp = s.crypto_box_keypair(); // X25519 (Curve25519) keys, usable with crypto_scalarmult
+  return { publicKey: kp.publicKey, secretKey: kp.privateKey };
+}
+
+/**
+ * Derive the 32-byte content key from an ECDH between my ephemeral secret and the peer's ephemeral
+ * public. Symmetric by construction — both sides compute the identical key — and bound to the room
+ * salt + both public keys (sorted) to prevent unknown-key-share confusion.
+ */
+export async function deriveContentKey(mySecret: Uint8Array, peerPublic: Uint8Array, roomSalt: Uint8Array): Promise<Uint8Array> {
+  const s = await sodium();
+  const shared = s.crypto_scalarmult(mySecret, peerPublic); // X25519 shared secret
+  const myPublic = s.crypto_scalarmult_base(mySecret);
+  const [lo, hi] = compareBytes(myPublic, peerPublic) <= 0 ? [myPublic, peerPublic] : [peerPublic, myPublic];
+  const input = new Uint8Array(shared.length + lo.length + hi.length + roomSalt.length);
+  input.set(shared, 0);
+  input.set(lo, shared.length);
+  input.set(hi, shared.length + lo.length);
+  input.set(roomSalt, shared.length + lo.length + hi.length);
+  return s.crypto_generichash(32, input); // BLAKE2b-256 as the KDF
+}

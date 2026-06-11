@@ -164,7 +164,7 @@ export class CompanionCore {
     return {
       ok: true,
       message,
-      publish: { v: 1, roomId: this.cfg.roomId, nonce: sealed.nonce, ciphertext: sealed.ciphertext },
+      publish: { v: 1, roomId: this.cfg.roomId, keyEpoch: 0, nonce: sealed.nonce, ciphertext: sealed.ciphertext },
     };
   }
 

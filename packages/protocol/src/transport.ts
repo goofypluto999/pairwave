@@ -15,6 +15,8 @@ import { Base64, RelayEnvelope, ControlFrame } from "./envelope.js";
 export const PublishEnvelope = z.object({
   v: z.literal(1),
   roomId: z.string().min(8),
+  /** Which key sealed this (0 = room/handshake key, 1 = ephemeral content key). (SPEC §10.1) */
+  keyEpoch: z.number().int().nonnegative().default(0),
   nonce: Base64,
   ciphertext: Base64,
 });

@@ -17,6 +17,12 @@ export const RelayEnvelope = z.object({
   roomId: z.string().min(8),
   /** Relay-assigned monotonic sequence per room. Transport/display hint only. (SPEC §5.4) */
   seq: z.number().int().nonnegative(),
+  /**
+   * Which key sealed this message (SPEC §10.1, forward secrecy). 0 = the room/handshake key
+   * (Argon2id from the passphrase); 1 = the ephemeral ECDH content key. Plaintext + relay-visible —
+   * it's just a key selector and leaks nothing. Defaults to 0 for backward compatibility.
+   */
+  keyEpoch: z.number().int().nonnegative().default(0),
   /** Relay receive time, ISO-8601 UTC. UNTRUSTED — ordering aid only, never for security. */
   tsRelay: z.string().datetime(),
   /** AEAD nonce (XChaCha20-Poly1305, 24 bytes). Unique per message. (SPEC §15.3) */

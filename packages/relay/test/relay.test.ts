@@ -153,6 +153,7 @@ test("E2E survives a round-trip through the relay, and the relay holds only ciph
     assert.equal(stored.length, 1);
     assert.deepEqual(Object.keys(stored[0]!).sort(), [
       "ciphertext",
+      "keyEpoch",
       "nonce",
       "roomId",
       "seq",

@@ -122,6 +122,7 @@ export async function createRelay(opts: RelayOptions = {}): Promise<RelayHandle>
           v: 1,
           roomId: f.env.roomId,
           seq: store.nextSeq(f.env.roomId),
+          keyEpoch: f.env.keyEpoch, // carry the key selector through untouched
           tsRelay: now(),
           nonce: f.env.nonce,
           ciphertext: f.env.ciphertext,

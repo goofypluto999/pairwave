@@ -93,8 +93,9 @@ async function main(): Promise<void> {
       if (/^wss?:\/\/(127\.0\.0\.1|localhost)/i.test(relayUrl)) {
         out("");
         out("  NOTE: a localhost relay only works on YOUR machine (or LAN via your IP).");
-        out("  For a friend on another network, omit --relay to use the community relay,");
-        out("  or self-host (pairwave relay / the Deploy to Render button in the README).");
+        out("  Friend on another network? ONE of you runs:  pairwave relay --public");
+        out("  — it prints a public wss:// address (no account, no server). Put it in --relay,");
+        out("  or just re-run: pairwave init --relay <that-address>");
       }
       printNextSteps(projectDir, encodeInvite(invite));
       return;
@@ -118,6 +119,46 @@ async function main(): Promise<void> {
       const port = flag("port") ?? "8787";
       const relayPkg = require.resolve("@pairwave/relay/package.json");
       const entry = join(dirname(relayPkg), "dist", "index.js");
+
+      // --public: turn THIS machine into the relay for a remote partner, with no account and no
+      // third-party server. Uses Cloudflare's free quick-tunnel (cloudflared) if present; the relay
+      // and the tunnel both stop when you Ctrl+C. Only runs while you're collaborating.
+      if (argv.includes("--public")) {
+        const cf = (await import("node:child_process")).spawnSync(process.platform === "win32" ? "where" : "which", ["cloudflared"]);
+        if (cf.status !== 0) {
+          out("Public mode needs 'cloudflared' (Cloudflare's free tunnel — no account required).");
+          out("  Install once:  https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/");
+          out("  Windows: winget install --id Cloudflare.cloudflared");
+          out("  macOS:   brew install cloudflared    Linux: see the link above");
+          out("Then re-run: pairwave relay --public");
+          out("(No-install alternative: the Deploy to Render button in the README.)");
+          process.exit(1);
+        }
+        const relayChild = spawn(process.execPath, [entry], { stdio: "inherit", env: { ...process.env, PORT: port } });
+        out(`Relay running on :${port}. Opening a public tunnel (no account)…`);
+        const tun = spawn("cloudflared", ["tunnel", "--url", `http://localhost:${port}`], { stdio: ["ignore", "pipe", "pipe"] });
+        const onData = (buf: Buffer): void => {
+          const m = String(buf).match(/https:\/\/[a-z0-9-]+\.trycloudflare\.com/);
+          if (m) {
+            const wss = m[0].replace(/^https/, "wss");
+            out("");
+            out("  ┌─ SHARE THIS as the relay (both sides), keep this window open ─");
+            out(`  │  Re-run init with:  pairwave init --relay ${wss}`);
+            out("  └───────────────────────────────────────────────────────────────");
+            out("");
+            tun.stdout?.off("data", onData);
+            tun.stderr?.off("data", onData);
+          }
+        };
+        tun.stdout?.on("data", onData);
+        tun.stderr?.on("data", onData);
+        const stop = (): void => { try { relayChild.kill(); } catch { /* */ } try { tun.kill(); } catch { /* */ } process.exit(0); };
+        process.on("SIGINT", stop);
+        process.on("SIGTERM", stop);
+        relayChild.on("exit", stop);
+        return;
+      }
+
       // Show every address a peer could use, so "what do I put in --relay?" answers itself.
       const { networkInterfaces } = await import("node:os");
       const lanIps = Object.values(networkInterfaces())

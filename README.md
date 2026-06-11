@@ -77,14 +77,17 @@ That one line did everything: checked prerequisites, installed Pairwave (outside
 built it, gave you a global `pairwave` command, wired your project (`.mcp.json` + the `/pairwave`
 skill + room config), and git-ignored the key material. Nothing else to configure.
 
-> **The relay (the dumb pipe between you) — every pair brings their own; there is NO central
-> server and no one else in the loop.** It cannot read your messages either way (it stores and
-> forwards encrypted bytes only — architecture, not policy):
+> **The relay (the dumb pipe between you) — there is NO central server and no one else in the loop.**
+> It cannot read your messages either way (it stores and forwards encrypted bytes only — that's the
+> architecture, not a policy). Pick whichever fits:
 > - **Same machine / same wifi:** Person A runs `pairwave relay` — it prints the exact address. Done.
-> - **Different networks:** ONE of you clicks once →
+> - **Different networks, zero account:** ONE of you runs **`pairwave relay --public`** — it turns
+>   your own machine into the relay and opens a free Cloudflare quick-tunnel (no login, no signup),
+>   printing a `wss://…trycloudflare.com` address to share. It runs only while you collaborate.
+>   (One-time install of the free `cloudflared` tool; the command tells you how.)
+> - **Different networks, zero install:** click once →
 >   [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/goofypluto999/pairwave)
->   — free, ~2 minutes, no card — then Person A adds `--relay wss://<your-relay>` to the init line.
->   (Free tier sleeps when idle: first reconnect ~30s, then instant. Any other host/VPS works too.)
+>   — free, ~2 min, no card — then add `--relay wss://<your-relay>` to the init line.
 
 **Want to feel it before inviting anyone?** Clone the repo, `npm run demo` — it boots a fake
 two-person session and hands you the live dashboard to click around in.

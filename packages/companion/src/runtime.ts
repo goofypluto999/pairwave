@@ -16,6 +16,8 @@ import { randomUUID } from "node:crypto";
 import { join } from "node:path";
 import {
   deriveSessionKey,
+  generateEphemeral,
+  deriveContentKey,
   fromB64,
   toB64,
   sas,
@@ -111,6 +113,9 @@ export class CompanionRuntime {
   private listeners = new Set<() => void>();
   private chainOk = true;
   private myPubB64 = "";
+  /** This room's ephemeral X25519 keypair for forward secrecy (SPEC §10.1). */
+  private myEph?: { publicKey: Uint8Array; secretKey: Uint8Array } | undefined;
+  private myEphPubB64 = "";
   /** Envelopes that failed decrypt/verify — surfaced, never silent. (SPEC §12) */
   droppedCount = 0;
 
@@ -147,6 +152,18 @@ export class CompanionRuntime {
     const rt = new CompanionRuntime(pairwaveDir, cfg, core, store);
     rt.myPubB64 = await toB64(identity.publicKey);
 
+    // Forward secrecy (SPEC §10.1): load-or-create this room's ephemeral X25519 keypair. It persists
+    // across restarts (so replay still decrypts) and is deleted on burn (so recorded ciphertext dies).
+    const existingEph = store.loadEphemeral();
+    if (existingEph) {
+      rt.myEph = { publicKey: await fromB64(existingEph.pubKeyB64), secretKey: await fromB64(existingEph.secretKeyB64) };
+    } else {
+      const e = await generateEphemeral();
+      store.saveEphemeral({ pubKeyB64: await toB64(e.publicKey), secretKeyB64: await toB64(e.secretKey) });
+      rt.myEph = e;
+    }
+    rt.myEphPubB64 = await toB64(rt.myEph.publicKey);
+
     // Reload the durable log, verify integrity, and replay local side effects (quarantine, perms).
     const persisted = store.loadMessages();
     if (persisted.length) {
@@ -157,7 +174,24 @@ export class CompanionRuntime {
     }
     core.verifyPeer(rt.state.sasVerified);
     rt.applyAgreedCharterPolicy();
+    await rt.tryDeriveContentKey(); // if the peer's hello is already in the log
     return rt;
+  }
+
+  /** Derive + install the ephemeral content key once we have the peer's announced ephemeral pubkey. */
+  private async tryDeriveContentKey(): Promise<void> {
+    if (this.core.hasContentKey || !this.myEph) return;
+    const peerHello = this.core.messages().find(
+      (m) =>
+        m.kind === "system.hello" &&
+        m.sender.peerId !== this.cfg.peerId &&
+        typeof (m.body.capabilities as Record<string, unknown>)?.ephPub === "string",
+    );
+    if (!peerHello || peerHello.kind !== "system.hello") return;
+    const peerEphPub = await fromB64(String((peerHello.body.capabilities as Record<string, unknown>).ephPub));
+    const key = await deriveContentKey(this.myEph.secretKey, peerEphPub, await fromB64(this.cfg.saltB64));
+    this.core.setContentKey(key);
+    this.emit();
   }
 
   // ───────────────────────── relay wiring ─────────────────────────
@@ -199,7 +233,9 @@ export class CompanionRuntime {
     if (!haveMyHello) {
       await this.send("system.hello", {
         peer: { peerId: this.cfg.peerId, name: this.cfg.name, pubKey: this.myPubB64 },
-        capabilities: { tool: "pairwave-companion", v: 1 },
+        // ephPub = our ephemeral X25519 public key for forward secrecy (SPEC §10.1). It rides inside
+        // the Ed25519-signed hello, so it's authenticated; SAS still anchors trust in the identity.
+        capabilities: { tool: "pairwave-companion", v: 1, ephPub: this.myEphPubB64 },
       }, "agent");
     }
   }
@@ -212,7 +248,10 @@ export class CompanionRuntime {
     const result = await this.core.ingest(env);
     if (!result.ok) {
       if (result.code === "duplicate" && result.msgId) this.confirmOutbox(result.msgId);
-      else {
+      else if (result.code === "awaiting_key_exchange") {
+        // Expected pre-KEX (an epoch-1 message before the content key is derived). Not a drop —
+        // the relay replays on reconnect, by which point the peer's hello has set the key.
+      } else {
         // Never silent (SPEC §12): a dropped envelope is surfaced, counted, and shown in the UI.
         this.droppedCount += 1;
         process.stderr.write(`[pairwave] dropped envelope seq=${env.seq}: ${result.code}\n`);
@@ -223,6 +262,10 @@ export class CompanionRuntime {
     this.store.appendMessage(result.message);
     this.confirmOutbox(result.message.msgId);
     this.applySideEffects(result.message, { replay: false });
+    // A peer hello may carry their ephemeral pubkey — derive the forward-secrecy content key now.
+    if (result.message.kind === "system.hello" && result.message.sender.peerId !== this.cfg.peerId) {
+      await this.tryDeriveContentKey();
+    }
     this.emit();
   }
 
@@ -606,6 +649,11 @@ export class CompanionRuntime {
         // (the stress suite proved a large artifact would corrupt the parse and break read()).
         body: clipValue(m.body),
       }));
+  }
+
+  /** True once the ephemeral key exchange has completed and content is forward-secret. (§10.1) */
+  fsActive(): boolean {
+    return this.core.hasContentKey;
   }
 
   chainVerified(): boolean {

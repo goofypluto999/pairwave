@@ -13,7 +13,7 @@
  *
  * JSON writes go through `safeWriteJson` (tmp + rename) so a crash mid-write can't corrupt state.
  */
-import { mkdirSync, writeFileSync, readFileSync, renameSync, existsSync, appendFileSync } from "node:fs";
+import { mkdirSync, writeFileSync, readFileSync, renameSync, existsSync, appendFileSync, rmSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, dirname } from "node:path";
 import {
@@ -161,5 +161,23 @@ export class RoomStore {
 
   saveOutbox(outbox: Record<string, PublishEnvelope>): void {
     safeWriteJson(join(this.roomDir, "outbox.json"), outbox);
+  }
+
+  // ephemeral.json — this room's forward-secrecy X25519 keypair (SPEC §10.1). Persists across
+  // restarts so replay still decrypts; DELETED on burn so recorded ciphertext becomes unreadable.
+  loadEphemeral(): { pubKeyB64: string; secretKeyB64: string } | undefined {
+    return readJson<{ pubKeyB64: string; secretKeyB64: string }>(join(this.roomDir, "ephemeral.json"));
+  }
+
+  saveEphemeral(rec: { pubKeyB64: string; secretKeyB64: string }): void {
+    safeWriteJson(join(this.roomDir, "ephemeral.json"), rec);
+  }
+
+  deleteEphemeral(): void {
+    try {
+      rmSync(join(this.roomDir, "ephemeral.json"), { force: true });
+    } catch {
+      /* already gone */
+    }
   }
 }

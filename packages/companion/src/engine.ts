@@ -53,6 +53,8 @@ export class CompanionCore {
   private seen = new Set<string>();
   private sasVerified = false;
   private pubB64?: string;
+  /** Ephemeral ECDH content key (epoch 1). Set once the key exchange completes. (SPEC §10.1) */
+  private contentKey?: Uint8Array | undefined;
   private policy: FloorPolicy;
   private readonly clock: () => number;
   private readonly idgen: () => string;
@@ -66,6 +68,15 @@ export class CompanionCore {
   /** Adopt the floor policy agreed in the charter. (SPEC §6) */
   setPolicy(policy: FloorPolicy): void {
     this.policy = policy;
+  }
+
+  /** Install the ephemeral content key once the key exchange completes (forward secrecy). */
+  setContentKey(key: Uint8Array): void {
+    this.contentKey = key;
+  }
+
+  get hasContentKey(): boolean {
+    return this.contentKey !== undefined;
   }
 
   getPolicy(): FloorPolicy {
@@ -160,20 +171,27 @@ export class CompanionCore {
     const { hash: _h, sig: _s, ...core } = parsed.data;
     const message = await buildMessage(core as unknown as Parameters<typeof buildMessage>[0], this.cfg.identity.secretKey);
     this.appendVerified(message);
-    const sealed = await seal(message, this.cfg.sessionKey);
+    // Forward secrecy (SPEC §10.1): content rides the ephemeral key (epoch 1) once the key exchange
+    // has completed; the handshake (system.*) always uses the room key (epoch 0). Before the content
+    // key exists, fall back to epoch 0 so early messages still send (they're rare and pre-substantive).
+    const useContent = this.contentKey !== undefined && !kind.startsWith("system.");
+    const keyEpoch = useContent ? 1 : 0;
+    const sealed = await seal(message, useContent ? this.contentKey! : this.cfg.sessionKey);
     return {
       ok: true,
       message,
-      publish: { v: 1, roomId: this.cfg.roomId, keyEpoch: 0, nonce: sealed.nonce, ciphertext: sealed.ciphertext },
+      publish: { v: 1, roomId: this.cfg.roomId, keyEpoch, nonce: sealed.nonce, ciphertext: sealed.ciphertext },
     };
   }
 
   /** Decrypt + verify + dedupe an inbound envelope, appending it to the verified log. */
   async ingest(env: RelayEnvelope): Promise<IngestResult> {
     if (env.roomId !== this.cfg.roomId) return { ok: false, code: "wrong_room" };
+    const key = env.keyEpoch === 1 ? this.contentKey : this.cfg.sessionKey;
+    if (!key) return { ok: false, code: "awaiting_key_exchange" }; // epoch-1 before KEX — relay will replay
     let message: Message;
     try {
-      message = await open(env, this.cfg.sessionKey);
+      message = await open(env, key);
     } catch (e) {
       return { ok: false, code: (e as { code?: string }).code ?? "open_failed" };
     }

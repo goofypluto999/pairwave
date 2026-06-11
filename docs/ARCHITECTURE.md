@@ -44,8 +44,11 @@ mcp.ts (tool surface) · uiserver.ts (localhost API/SSE) · persist.ts (crash-sa
    trigger a loud re-verify warning.
 5. **A third joiner**: relay enforces 2 peers/room; without the passphrase they'd hold ciphertext only.
 6. **Hostile peer actions**: danger guard + dual permission gates + zero companion disk/shell access.
-Residual (documented, SPEC §15): relay sees metadata (sizes/timing/presence); no forward secrecy v1
-(rotate rooms); endpoint compromise is out of scope.
+Forward secrecy: content rides an ephemeral X25519 ECDH key (epoch 1), authenticated by the identity
+signatures + SAS; the passphrase-derived room key (epoch 0) only protects the handshake. A later
+passphrase leak therefore can't read recorded traffic; ephemeral keys are deleted on burn.
+Residual (documented, SPEC §15): relay sees metadata (sizes/timing/presence); per-message ratchet
+(post-compromise security) is v2; endpoint compromise is out of scope.
 
 ## Verification map (84 automated tests)
 protocol 12 (crypto round-trip, tamper/forge/replay fail-closed, SAS, DAG) · relay 6 (E2E through

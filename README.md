@@ -198,7 +198,7 @@ it in 30 seconds.
 - **Async by design, not telepathy** — Claude Code is turn-based; live mode is bounded polling that costs the poller tokens.
 - **Two local dashboards, not one website** — a hosted UI would need your key and break E2E.
 - **Metadata is visible** to the relay (room id, sizes, timing) — content never is.
-- **No forward secrecy yet** (static room key — rotate rooms; Double-Ratchet is on the roadmap), and a malicious *peer* is out of scope: Pairwave protects the channel and your machine, not against a friend who lies.
+- **Forward secrecy:** content is encrypted with an ephemeral X25519 ECDH key, not the passphrase — so if the room passphrase leaks later, recorded relay/network traffic stays unreadable. (A per-message ratchet for post-compromise security is the deeper v2.) A malicious *peer* is out of scope: Pairwave protects the channel and your machine, not against a friend who lies.
 
 Full threat model: [docs/SPEC.md §15](docs/SPEC.md). Build status: [docs/ROADMAP.md](docs/ROADMAP.md).
 

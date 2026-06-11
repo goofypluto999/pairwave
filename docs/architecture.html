@@ -99,7 +99,7 @@
     <div class="stat-row">
       <div class="stat"><b>4</b><span>packages</span></div>
       <div class="stat"><b>32</b><span>source modules</span></div>
-      <div class="stat"><b>95</b><span>automated tests ✓</span></div>
+      <div class="stat"><b>104</b><span>automated tests ✓</span></div>
       <div class="stat"><b>0</b><span>central servers</span></div>
       <div class="stat"><b>E2E</b><span>encrypted</span></div>
     </div>
@@ -230,7 +230,7 @@
       </div>
       <div class="panel"><h3>Honest limits (v1)</h3>
         <ul style="list-style:none;display:grid;gap:7px;margin-top:6px;font-size:13px;color:var(--dim)">
-          <li><span class="pill v2">v2</span> Forward secrecy — static room key; rotate rooms meanwhile</li>
+          <li><span class="pill ok">done</span> Forward secrecy — content rides an ephemeral ECDH key; a later passphrase leak can't read recorded traffic. <span style="color:var(--faint)">(per-message ratchet is the deeper v2)</span></li>
           <li><span class="pill v2">v2</span> &gt;2-person rooms — model is deliberately 2-party</li>
           <li>Relay sees metadata (sizes, timing, presence) — never content</li>
           <li>A compromised endpoint or a lying trusted peer is out of scope</li>
@@ -242,12 +242,12 @@
   <!-- TEST MATRIX -->
   <section class="view" id="v-test">
     <div class="panel">
-      <h3>Test &amp; status matrix — 95 automated + live proofs</h3>
+      <h3>Test &amp; status matrix — 104 automated + live proofs</h3>
       <table style="margin-top:10px">
         <tr><th>Area</th><th>Coverage</th><th>Status</th></tr>
-        <tr><td>Crypto core (protocol)</td><td class="mono">12: seal/open, tamper/forge/replay fail-closed, SAS, hash-DAG</td><td><span class="pill ok">tested</span></td></tr>
+        <tr><td>Crypto core (protocol)</td><td class="mono">17: seal/open, tamper/forge/replay fail-closed, SAS, hash-DAG, forward-secrecy ECDH key agreement</td><td><span class="pill ok">tested</span></td></tr>
         <tr><td>Relay (untrusted bus)</td><td class="mono">6: E2E via real WS, ciphertext-only store, replay, presence, 2-peer cap</td><td><span class="pill ok">tested</span></td></tr>
-        <tr><td>Companion brain</td><td class="mono">72: floor/hops, gates, guard, secrets, quarantine, ledger, brain, git no-overlap, engine+runtime e2e, stress</td><td><span class="pill ok">tested</span></td></tr>
+        <tr><td>Companion brain</td><td class="mono">76: floor/hops, gates, guard, secrets, quarantine, ledger, brain, git no-overlap, forward-secrecy e2e, engine+runtime e2e, stress</td><td><span class="pill ok">tested</span></td></tr>
         <tr><td>Git coordination</td><td class="mono">7: path-ownership ledger, overlap detection, earlier-wins, proactive refusal, release</td><td><span class="pill ok">tested</span></td></tr>
         <tr><td>CLI / install wiring</td><td class="mono">5: invite codec, project wiring, no-clobber, idempotency</td><td><span class="pill ok">tested</span></td></tr>
         <tr><td>Stress (real sockets)</td><td class="mono">floods (zero loss, same order), relay outage+recovery, 300KB, fork convergence</td><td><span class="pill ok">tested</span></td></tr>
@@ -258,7 +258,8 @@
         <tr><td>Remote tunnel (`--public`)</td><td class="mono">cloudflared tunnel opened, healthz reachable, 2 companions connected + exchanged E2E through it</td><td><span class="pill live">live-verified</span></td></tr>
         <tr><td>Live two-human session</td><td class="mono">you + Joao in real Claude Code — the final proof</td><td><span class="pill you">needs you</span></td></tr>
         <tr><td>npm publish</td><td class="mono">prepped (PUBLISHING.md); needs your npm login</td><td><span class="pill you">needs you</span></td></tr>
-        <tr><td>Forward secrecy / N-party</td><td class="mono">deliberately deferred — real design + review required</td><td><span class="pill v2">planned v2</span></td></tr>
+        <tr><td>Forward secrecy</td><td class="mono">ephemeral X25519 ECDH content key; relay ciphertext unreadable with only the passphrase — proven e2e</td><td><span class="pill ok">tested</span></td></tr>
+        <tr><td>Per-message ratchet / N-party</td><td class="mono">deeper FS (rolling keys) + &gt;2 people — real design + review required</td><td><span class="pill v2">planned v2</span></td></tr>
       </table>
     </div>
   </section>

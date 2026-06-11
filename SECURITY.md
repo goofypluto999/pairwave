@@ -15,5 +15,6 @@ Open a **GitHub private security advisory** on this repo (preferred), or an issu
 critical bug — report it immediately. Please never include real invite codes, keys, or transcripts.
 
 ## Known, documented limits (v1)
-Relay sees metadata (room id, sizes, timing, presence) · no forward secrecy (rotate rooms; ratchet
+Relay sees metadata (room id, sizes, timing, presence) · forward secrecy is session/room-level
+(ephemeral ECDH content key, deleted on burn) — per-message ratchet (post-compromise security)
 planned) · a compromised endpoint or a malicious *trusted peer* is out of scope.

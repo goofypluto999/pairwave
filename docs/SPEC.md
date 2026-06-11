@@ -10,6 +10,20 @@ implements this spec; where they disagree, the spec wins until updated.
 
 > Notation: **MUST / MUST NOT / SHOULD / MAY** in the RFC-2119 sense.
 
+### §10.1 Forward secrecy (added 0.4, shipped + tested)
+Content (everything except the handshake) is sealed with a key derived from an **ephemeral X25519
+ECDH**, not the passphrase. Each peer generates a throwaway keypair per room, announces its public
+half inside the Ed25519-signed `system.hello` (so it's authenticated; SAS still anchors identity
+trust), and both derive the identical `contentKey = BLAKE2b(scalarmult(my_eph, peer_eph) ‖ sorted
+pubkeys ‖ roomSalt)`. The `RelayEnvelope.keyEpoch` selects the key: 0 = room/handshake key (Argon2id
+from passphrase), 1 = ephemeral content key. Ephemeral private keys are stored locally (0600,
+`ephemeral.json`), persist across restarts so replay still decrypts, and are deleted on burn.
+**Property:** a future passphrase leak cannot decrypt recorded relay/network traffic (the content key
+isn't derivable from the passphrase). **Out of scope (v2):** per-message ratchet / post-compromise
+security; endpoint compromise (the local plaintext log already exists on the trusted machine).
+Proven by `protocol/test/fs.test.ts` (key agreement + separation) and
+`companion/test/fs.e2e.test.ts` (KEX over the wire; passphrase key cannot open epoch-1 content).
+
 ### What changed in 0.3 (the implementation pass — spec updated to match shipped reality)
 - **§7.3** — `action.result` is a non-hop **receipt**: it never counts toward, and is never blocked
   by, the agent hop cap. The e2e suite proved the alternative deadlocks the requester (a receipt for
@@ -60,7 +74,8 @@ implements this spec; where they disagree, the spec wins until updated.
 - **Not a CRDT live editor.** We exchange artifacts/context, not keystrokes.
 - **Not anonymity.** The relay sees room id, sizes, timing, and presence (§13).
 - **Not endpoint security.** If a machine is compromised, its key/plaintext are exposed.
-- **Not forward secrecy in v1.** Static key from passphrase; ratchet is a later phase (§13.4).
+- **Forward secrecy = session/room-level (§10.1).** Content rides an ephemeral X25519 ECDH key, not
+  the passphrase; a per-message ratchet (post-compromise security) is a later phase (§13.4).
 
 ---
 

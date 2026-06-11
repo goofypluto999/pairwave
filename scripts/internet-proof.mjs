@@ -8,7 +8,7 @@ import { CompanionRuntime } from "@pairwave/companion/dist/runtime.js";
 import { saveConfig } from "@pairwave/companion/dist/persist.js";
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-const RELAY = "ws://127.0.0.1:8787";
+const RELAY = process.env.PAIRWAVE_RELAY ?? "ws://127.0.0.1:8787"; // point at any reachable relay
 const roomId = "rm-proof-" + randomBytes(6).toString("hex");
 const saltB64 = randomBytes(16).toString("base64");
 const passphrase = randomBytes(24).toString("base64url");

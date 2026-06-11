@@ -10,10 +10,10 @@ everything is fixed by step 1.
    broken workspace links, and reinstalls the global command — without touching the room.
 2. **Tools missing in Claude Code?** Restart Claude Code in the project folder; approve the
    `pairwave` MCP server. Check wiring: `pairwave status`.
-3. **"Not connected" / beam offline?** The relay is unreachable. Test
-   `http://127.0.0.1:8787/healthz` (community relay) or the room's own relay URL from
-   `.pairwave/config.json`. Self-hosters: restart with `pairwave relay`. Messages sent while offline
-   are safe in the outbox and auto-deliver on reconnect.
+3. **"Not connected" / beam offline?** The relay is unreachable. Find the room's relay URL in
+   `.pairwave/config.json` and test `<that-url-as-http>/healthz`. Local/LAN relays: the host runs
+   `pairwave relay`. Render relays: free tier sleeps — the first reconnect takes ~30s. Messages sent
+   while offline are safe in the outbox and auto-deliver on reconnect.
 4. **Dashboard dead?** The companion prints its port on start (default 7591, walks to +20). It only
    runs while a Claude Code session is open in that folder.
 5. **"HISTORY TAMPERED" chip / dropped envelopes?** Do not trust new content; re-verify the six SAS

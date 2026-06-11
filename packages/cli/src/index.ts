@@ -83,8 +83,8 @@ async function main(): Promise<void> {
 
   switch (cmd) {
     case "init": {
-      // Default: the always-on community relay. It sees only ciphertext (E2E by design), so a
-      // shared host costs users nothing in privacy of CONTENT. Self-hosters: --relay <ws-url>.
+      // No central server: every pair brings its own relay (local/LAN, or their own free Render
+      // deploy — see README). Default is local; init prints exactly what to do for remote pairs.
       const relayUrl = flag("relay") ?? "ws://127.0.0.1:8787";
       const invite = newInvite(relayUrl);
       const name = flag("name") ?? defaultName();

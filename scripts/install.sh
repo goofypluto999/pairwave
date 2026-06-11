@@ -21,7 +21,11 @@ PROJECT_DIR="$(pwd)"
 
 if [ -d "$APP/.git" ]; then
   say "updating Pairwave in $APP"
-  git -C "$APP" pull --ff-only --quiet
+  # Hard-sync to upstream — survives force-pushed/rewritten history. The app clone holds no user
+  # data (your room lives in your project's .pairwave/). Re-clone if unrecoverable.
+  git -C "$APP" fetch --quiet origin || true
+  git -C "$APP" reset --hard origin/main --quiet 2>/dev/null || {
+    say "re-cloning (upstream history changed)"; rm -rf "$APP"; git clone --quiet "$REPO" "$APP"; }
 else
   say "installing Pairwave into $APP"
   mkdir -p "$(dirname "$APP")"

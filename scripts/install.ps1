@@ -25,8 +25,16 @@ $app = Join-Path $env:LOCALAPPDATA "pairwave\app"
 $projectDir = (Get-Location).Path
 if (Test-Path (Join-Path $app ".git")) {
   Step "updating Pairwave in $app"
-  git -C $app pull --ff-only --quiet
-  if ($LASTEXITCODE -ne 0) { Fail "git pull failed in $app" }
+  # Hard-sync to upstream — survives force-pushed/rewritten history (the app clone holds no user
+  # data; your room lives in your project's .pairwave/). Re-clone if the repo is unrecoverable.
+  git -C $app fetch --quiet origin 2>$null
+  git -C $app reset --hard origin/main --quiet 2>$null
+  if ($LASTEXITCODE -ne 0) {
+    Step "re-cloning (upstream history changed)"
+    Remove-Item -Recurse -Force $app -ErrorAction SilentlyContinue
+    git clone --quiet $repo $app
+    if ($LASTEXITCODE -ne 0) { Fail "git clone failed ($repo)" }
+  }
 } else {
   Step "installing Pairwave into $app"
   New-Item -ItemType Directory -Force -Path (Split-Path $app) | Out-Null

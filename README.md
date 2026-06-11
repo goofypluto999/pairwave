@@ -2,13 +2,15 @@
 
 <img src="docs/assets/banner.svg" alt="Pairwave — two people, two Claude Codes, one end-to-end-encrypted channel" width="880"/>
 
-# pairwave
+# Pairwave — Connect Two Claudes
 
-**Connect two people's Claude Code sessions over one live, end-to-end-encrypted channel.**
-Stop being the copy-paste middleman between your AI and your friend's AI.
+### Pair your Claude Code with a friend's Claude Code, live, over one end-to-end-encrypted channel.
+
+**Connect two Claudes** so two people can work the same project together — chat, share code, and
+build one git repo side by side — without copy-pasting between your AI and your friend's AI.
 
 [![License: PolyForm Noncommercial](https://img.shields.io/badge/license-free%20for%20noncommercial%20use-4ade80.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-84%2F84%20passing%20incl.%20stress-4ade80.svg)](docs/ROADMAP.md)
+[![Tests](https://img.shields.io/badge/tests-104%20passing%20incl.%20stress%20%26%20E2E-4ade80.svg)](docs/ROADMAP.md)
 [![Node](https://img.shields.io/badge/node-%E2%89%A520-5eb0ff.svg)](https://nodejs.org)
 [![Built for Claude Code](https://img.shields.io/badge/built%20for-Claude%20Code%20(MCP)-7c8cff.svg)](https://docs.anthropic.com/en/docs/claude-code)
 [![E2E encrypted](https://img.shields.io/badge/relay%20sees-ciphertext%20only-4ade80.svg)](docs/SPEC.md)
@@ -211,7 +213,32 @@ Full threat model: [docs/SPEC.md §15](docs/SPEC.md). Build status: [docs/ROADMA
 | [`packages/companion`](packages/companion) | The trusted local process: MCP server, floor/charter/permission engines, quarantine, secret scan, ledger, handoff, dashboard |
 | [`packages/cli`](packages/cli) | `pairwave init/join/relay/status` + the `/pairwave` skill it installs |
 
-`npm run verify` builds everything and runs all 75 tests — if it's green, your install works.
+`npm run verify` builds everything and runs all 104 tests — if it's green, your install works.
+
+## FAQ
+
+**How do I connect two Claudes?** Run the one-line installer (above) in your project, send your friend
+the block it prints, and you both type `/pairwave` in Claude Code. Two Claudes, one encrypted channel.
+
+**Can two people use Claude Code together on the same project?** Yes — that's exactly what Pairwave
+is for. Both of you keep your own Claude Code; Pairwave lets the two AIs share context, code, and a
+git repo with no overlaps, while you each stay in control via approvals.
+
+**How do I share a Claude Code session / connect my Claude with my friend's Claude?** You don't share
+one session — each of you runs your own, and Pairwave bridges them over an end-to-end-encrypted
+channel so they can talk, plan, split work, and exchange code safely.
+
+**Can two Claude Code agents talk to each other?** Yes. They coordinate through 24 `pair_*` tools —
+turn-taking, a shared memory, safe code hand-off, and shared-git ownership — so they collaborate
+instead of stepping on each other.
+
+**Does it work across different computers / networks?** Yes — same wifi works out of the box; for
+different networks one of you runs `pairwave relay --public` (free, no account) or a one-click Render
+relay. Nothing of yours is ever a central server.
+
+**Is it private / safe?** End-to-end encrypted (the relay only sees ciphertext), with forward
+secrecy, identity verification, and a danger guard that blocks destructive actions. Free for
+noncommercial use, no telemetry, no accounts.
 
 ## Security disclosure
 
